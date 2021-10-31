@@ -33,9 +33,9 @@ private:
 	int cap;
 
 	void ensureSize(size_t size) {
-
+		//std::cout << "\nbefore";
 		assert(!this->data || this->cap != 0);
-
+		//std::cout << "\nSled";
 		size_t newSize = data ? this->cap : 1;
 
 		while (newSize < size) {
@@ -43,13 +43,14 @@ private:
 		}
 
 		if (newSize != this->cap) {
-			resize(newSize);
+			reserveSpace(newSize);
 		}
 	}
 
-	void resize(size_t size) {
+	void reserveSpace(size_t size) {
 
-		T* newData = new T[size];
+		//T* newData = new T[size];
+		T* newData = NEW(T, size);
 
 		for (int i = 0; i < this->count && i < size; ++i) {
 
@@ -65,6 +66,31 @@ private:
 	}
 
 public:
+	void resize(size_t size, const T& val = T()) {
+
+		//ensureSize(size);
+		if (size < this->count) {
+			this->count -= count - size;
+			return;
+		}
+
+		if (size > this->cap) {
+			reserve(size);
+		}
+
+		for (int i = this->count; i < size; ++i) {
+			data[i] = val;
+		}
+		this->count = size;
+	}
+
+	/* void resize(size_t size, const T& val) : resize(size) {
+
+		if (this->count < this->cap) {
+
+			for (int i = count; i < cap; ++)
+		}
+	} */
 
 	vector() : data(nullptr), count(0), cap(0) {}
 
@@ -216,6 +242,8 @@ public:
 			this->cap *= 2;
 		}
 
+		ensureSize(this->count + 1);
+
 		this->data[count] = obj;
 		count++;
 	}
@@ -250,7 +278,12 @@ public:
 
 	private:
 		T* ptr;
+
+		const T* getPointer() const {
+			return ptr;
+		}
 		
+		friend class vector;
 	public:
 		
 		iterator(T* init) : ptr(init) {};
@@ -312,17 +345,23 @@ public:
 	}
 
 	iterator insert(iterator pos, const T& val) {
+
+		int distFromBegin = pos.getPointer() - data;
+		//std::cout << "dist: " << distFromBegin << '\n';
 		
 		ensureSize(count + 1);
 
-		for (iterator iter = end(); iter != pos; --iter) {
+		iterator newIter = this->begin() + distFromBegin;
+
+		for (iterator iter = end(); iter != newIter; --iter) {
 			*iter = *(iter - 1);
+			
 		}
-		*pos = val;
+		*newIter = val;
 
 		this->count++;
 
-		return pos;
+		return newIter;
 
 	}
 
@@ -333,6 +372,7 @@ public:
 			for (it; it + 1 != this->end(); ++it) {
 				*it = *(it + 1);
 			}
+			count--;
 		}
 		catch(const char* s) {
 			std::cout << "Operation failed. Error message:\n" << s << '\n';
@@ -341,6 +381,17 @@ public:
 
 		return it;
 		
+	}
+	///TODO
+	iterator erase(iterator first, iterator last) {
+		int dist = last.getPointer() - first.getPointer();
+
+		for (first; first + dist != this->end(); ++first) {
+			*first = *(first + dist);
+		}
+		count -= dist;
+
+		return last;
 	}
 
 	/* 

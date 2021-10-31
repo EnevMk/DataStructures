@@ -96,41 +96,38 @@ using vector = std::vector<T, stl_allocator<T>>;
 
 /// Tests begin
 
-TEST_CASE("Vector create/destroy", "[vector][lifetime]") {
-	Registry<int> &memory = Registry<int>::get();
+TEMPLATE_TEST_CASE("Vector create/destroy", "[vector][lifetime]", TEST_TYPES) {
+	Registry<TestType> &memory = Registry<TestType>::get();
 
 	SECTION("Default constructor") {
-		vector<int> instance;
+		vector<TestType> instance;
 		REQUIRE(instance.size() == 0);
 		REQUIRE(instance.capacity() == 0);
 		REQUIRE_FALSE(memory.hasLeakedMemory());
 	}
 
 	SECTION("Copy constructor / operator=") {
-	
-		vector<int> instance;
-		vector<int> copy(instance);
-		vector<int> assign;
+		vector<TestType> instance;
+		vector<TestType> copy(instance);
+		vector<TestType> assign;
 		assign = instance;
 		REQUIRE(instance.size() == 0);
 		REQUIRE(instance.capacity() == 0);
 		REQUIRE(copy.capacity() == 0);
-	
 		REQUIRE_FALSE(memory.hasLeakedMemory());
 		REQUIRE(memory.allocatedObjectCount == 0);
 	}
 
 	SECTION("Constructor with count") {
-		vector<int> instance(15);
+		vector<TestType> instance(15);
 		REQUIRE(instance.size() == 15);
 		CHECK_THAT(instance.capacity(), IsBetween(15, 16));
 		CHECK_THAT(memory.allocatedObjectCount, IsBetween(15, 16));
-		//REQUIRE(memory.allocateCalls == 1);
 	}
 
 	SECTION("Constructor with count and value") {
 		{
-			vector<int> instance(17);
+			vector<TestType> instance(17, TestType());
 			REQUIRE(instance.size() == 17);
 			CHECK_THAT(instance.capacity(), IsBetween(17, 32));
 			CHECK_THAT(memory.allocatedObjectCount, IsBetween(17, 32));
@@ -141,15 +138,15 @@ TEST_CASE("Vector create/destroy", "[vector][lifetime]") {
 
 	SECTION("Copy and assign non empty vector") {
 		{
-			vector<int> instance(10);
+			vector<TestType> instance(10, TestType{});
 			REQUIRE(instance.size() == 10);
 			REQUIRE(instance.capacity() == 10);
 			
-			vector<int> copy(instance);
+			vector<TestType> copy(instance);
 			REQUIRE(copy.size() == 10);
 			REQUIRE(copy.capacity() == 10);
 
-			vector<int> assign;
+			vector<TestType> assign;
 			assign.reserve(100);
 			
 			REQUIRE(assign.capacity() == 100);
@@ -166,7 +163,7 @@ TEST_CASE("Vector create/destroy", "[vector][lifetime]") {
 
 	SECTION("Clear and shrink_to_fit after constructor with count") {
 		{
-			vector<int> instance(31);
+			vector<TestType> instance(31, TestType());
 
 			CHECK_THAT(instance.capacity(), IsBetween(31, 32));
 			REQUIRE(instance.size() == 31);
@@ -189,7 +186,7 @@ TEST_CASE("Vector create/destroy", "[vector][lifetime]") {
 
 	SECTION("Reservation and shrink_to_fit") {
 		{
-			vector<int> instance;
+			vector<TestType> instance;
 
 			REQUIRE(instance.size() == 0);
 			REQUIRE(instance.capacity() == 0);
@@ -212,7 +209,8 @@ TEST_CASE("Vector create/destroy", "[vector][lifetime]") {
 		REQUIRE_FALSE(memory.hasLeakedMemory());
 		REQUIRE(InstanceCounter::instanceCount == 0);
 	}
-/* 
+
+
 	SECTION("Resize clear and shrink_to_fit") {
 		{
 			vector<TestType> instance;
@@ -257,7 +255,7 @@ TEST_CASE("Vector create/destroy", "[vector][lifetime]") {
 		}
 		REQUIRE_FALSE(memory.hasLeakedMemory());
 		REQUIRE(InstanceCounter::instanceCount == 0);
-	} */
+	}
 }
  
 TEMPLATE_TEST_CASE("Vector back modify", "[vector][modify_end]", TEST_TYPES) {
@@ -448,7 +446,7 @@ TEMPLATE_TEST_CASE("Vector iterator access", "[vector][iterator]", TEST_TYPES) {
 		REQUIRE(InstanceCounter::instanceCount == 0);
 	}
 	
-	/* SECTION("Iterator insert/erase") {
+	SECTION("Iterator insert/erase") {
 		{
 			vector<TestType> instance(1, TestType{0});
 
@@ -469,11 +467,11 @@ TEMPLATE_TEST_CASE("Vector iterator access", "[vector][iterator]", TEST_TYPES) {
 			REQUIRE(instance.back() == TestType{0});
 			REQUIRE(instance.size() == 1);
 
-			//copy.erase(copy.begin(), copy.end());
-			//REQUIRE(copy.empty());
+			copy.erase(copy.begin(), copy.end());
+			REQUIRE(copy.empty());
 		}
 		REQUIRE_FALSE(memory.hasLeakedMemory());
 		REQUIRE(InstanceCounter::instanceCount == 0);
-	} */
+	}
 	
 } 
