@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstring>
 #include <cstdint>
 
@@ -12,8 +13,11 @@ private:
     constexpr static size_t containerBitsCount = 8 * sizeof(uint32_t);
 
     constexpr inline size_t getCountOfContainersNeeded(size_t bitsCount) {
-        return (bitsCount / this->containerBitsCount + (bitsCount % this->containerBitsCount) ? 1 : 0);
+        
+        return (bitsCount / this->containerBitsCount + ((bitsCount % this->containerBitsCount) ? 1 : 0));
+        
     }
+
 
 public:
     StaticBitset(int count, bool value);
@@ -88,15 +92,26 @@ void StaticBitset::set(size_t index) {
     if (index > this->count) {
         throw "Out of bitset range";
     }
-    this->data[index / this->containerBitsCount] |= 1 << index;
+    this->data[index / this->containerBitsCount] |= (1 << (index % containerBitsCount));
 }
 
 bool StaticBitset::get(size_t index) const {
-    return (data[index / this->containerBitsCount] >> index) & 1;
+
+    if (index > this->count) {
+        throw "Out of bitset range";
+    }
+
+    //return (data[index / this->containerBitsCount] >> index) & 1;
+    return this->operator[](index);
 }
 
 void StaticBitset::clear(size_t index) {
-    this->data[index / this->containerBitsCount] &= ~(1 << index);
+
+    if (index > this->count) {
+        throw "Out of bitset range";
+    }
+    this->data[index / this->containerBitsCount] &= ~(1 << (index % containerBitsCount));
+    
 }
 
 StaticBitset::proxy StaticBitset::operator[](int index) {
@@ -104,5 +119,6 @@ StaticBitset::proxy StaticBitset::operator[](int index) {
 }
 
 bool StaticBitset::operator[](size_t index) const {
-    return get(index);
+    
+    return (data[index / this->containerBitsCount] >> (index % containerBitsCount) & 1);
 }
