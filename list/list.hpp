@@ -30,8 +30,8 @@ private:
 
 public:
 	list();
-	list(size_t);
-	list(size_t, const T&);
+	list(const size_t);
+	list(const size_t, const T&);
 	list(const list&);
 	list& operator=(const list&);
 	~list();
@@ -52,11 +52,11 @@ public:
 template <typename T>
 void list<T>::copy(const list<T>& obj) {
 
-	Node const* ptr = obj.dummy.next;
+	Node* ptr = obj.dummy.next;
 
 	while (ptr != &obj.dummy) {
 	
-		insertBefore(&this->dummy,  ptr->data);
+		insertBefore(&this->dummy, ptr->data);
 		ptr = ptr->next;
 	}
 }
@@ -97,22 +97,29 @@ list<T>::list() {
 
 template<typename T>
 list<T>::~list() {
-	/* Node* ptr = dummy.next;
-
-	while(ptr != &dummy) {
-
-		Node* temp = ptr;
-		ptr = ptr->next;
-
-		DELETE(temp);
-	} */
 
 	this->clear();
 }
 
 template<typename T>
-list<T>::list(const list<T>& obj) : count(0) {
+list<T>::list(const list<T>& obj) : list() {
 	copy(obj);
+}
+
+template<typename T>
+list<T>::list(const size_t count_) : list() {
+	
+	while (count_ != this->count) {
+		insertBefore(&this->dummy, T());
+	}
+}
+
+template<typename T>
+list<T>::list(const size_t count_, const T& val) : list() {
+
+	while (count_ != this->count) {
+		insertBefore(&this->dummy, val);
+	}
 }
 
 template<typename T>
@@ -129,14 +136,8 @@ list<T>& list<T>::operator=(const list<T>& obj) {
 template <typename T>
 void list<T>::clear() {
 
-	Node const* ptr = dummy.next;
-
-	while (ptr != &dummy) {
-		
-		Node const* temp = ptr;
-		ptr = ptr->next;
-
-		DELETE(temp);
+	while (this->count != 0) {
+		this->remove(dummy.next);
 	}
 }
 

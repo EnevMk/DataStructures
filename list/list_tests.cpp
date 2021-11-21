@@ -83,7 +83,7 @@ TEMPLATE_TEST_CASE("List create/destroy", "[list][lifetime]", TEST_TYPES) {
 		REQUIRE(memory.allocatedObjectCount == 0);
 	}
 
-	/* SECTION("Constructor with count") {
+	SECTION("Constructor with count") {
 		TestList<TestType> instance(15);
 		REQUIRE(instance.size() == 15);
 		CHECK_THAT(memory.allocatedObjectCount, IsBetween(15, getMaxListObjects(15)));
@@ -135,7 +135,7 @@ TEMPLATE_TEST_CASE("List create/destroy", "[list][lifetime]", TEST_TYPES) {
 		}
 		REQUIRE_FALSE(memory.hasLeakedMemory());
 		REQUIRE(InstanceCounter::instanceCount == 0);
-	} */
+	}
 
 }
 

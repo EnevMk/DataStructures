@@ -84,14 +84,6 @@ public:
 		this->count = size;
 	}
 
-	/* void resize(size_t size, const T& val) : resize(size) {
-
-		if (this->count < this->cap) {
-
-			for (int i = count; i < cap; ++)
-		}
-	} */
-
 	vector() : data(nullptr), count(0), cap(0) {}
 
 	vector(const int count_) {
@@ -393,26 +385,5 @@ public:
 
 		return last;
 	}
-
-	/* 
-	class Iterator {
-    
-    private:
-
-        T* ptr;
-
-    public:
-
-        using value_type = T;
-
-        const T* getPtr() const;
-        Iterator(T* init);
-        bool operator!=(const Iterator &other);
-        Iterator& operator++();
-        Iterator operator+(int n);
-        T operator*();
-        std::ptrdiff_t operator-(const Iterator &other);
-        //bool Vector<T>::Iterator::operator<(const Iterator& other);
-    }; */
 };
 
