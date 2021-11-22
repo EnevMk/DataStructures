@@ -237,7 +237,7 @@ TEMPLATE_TEST_CASE("List back modify", "[list][modify_end]", TEST_TYPES) {
 		REQUIRE(InstanceCounter::instanceCount == 0);
 	}
 }
-/* 
+/*
 TEMPLATE_TEST_CASE("List iterator access", "[list][iterator]", TEST_TYPES) {
 	Registry<ListNode<TestType>>& memory = Registry<ListNode<TestType>>::get();
 

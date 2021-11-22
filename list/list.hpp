@@ -12,6 +12,33 @@
 // Uncomment if you allocate dynamic dummy node, example: this->dummy = NEW(Node, 1)
 // #define LIST_EXTRA_ELEMENT
 
+/// Value result template, true when argument is const qualified
+template <typename T>
+struct is_const {
+	enum {
+		value = false,
+	};
+};
+
+/// Specialization for const
+template <typename T>
+struct is_const<const T> {
+	enum {
+		value = true,
+	};
+};
+
+template <bool test, typename T>
+struct enable_if {
+	typedef T type;
+};
+
+/// Specialization for false case
+template <typename T>
+struct enable_if<false, T> {
+};
+
+
 template <typename T>
 struct list {
 	struct Node {
@@ -29,6 +56,57 @@ private:
 	void remove(Node *target);
 
 public:
+
+	template <bool isConst>
+	struct base_iterator {
+
+	private:
+		Node *ptr;
+
+		base_iterator(Node *n) : ptr(n) {}
+
+		friend struct list;
+	public:
+
+		template <bool val = isConst> ///if iterator is not const, return non const deref. operator
+		typename enable_if<!val, T>::type& operator*() {
+			return ptr->data;
+		}
+
+		template <bool val = isConst>
+		typename enable_if<val, const T>::type& operator*() {
+			return ptr->data;
+		}
+
+		/* T& operator*() {
+
+		}
+
+		const T& operator*() {
+
+		} */
+	};
+
+	typedef base_iterator<true> const_iterator;
+	typedef base_iterator<false> iterator;
+
+	const_iterator cbegin() {
+		return const_iterator(dummy.next);
+	}
+
+	iterator begin() {
+		return iterator(dummy.next);
+	}
+	/* template <bool val = isConst>
+	typename enable_if<!val, base_iterator>::type& begin() {
+		return base_iterator(dummy.next);
+	}
+
+	template <bool val = isConst>
+	typename enable_if<val, const base_iterator>::type& begin() {
+		return base_iterator(dummy.next);
+	} */
+
 	list();
 	list(const size_t);
 	list(const size_t, const T&);
