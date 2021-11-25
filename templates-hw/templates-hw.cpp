@@ -53,9 +53,8 @@ struct enable_if<false, T> {
 
 // TODO: implement this, without function overloading, use templates and SFINAE
 template <typename T, bool val = has_deref_operator<T>::value>
-typename enable_if<!val, T>::type deepCopy(T &dest,T &source) {
+typename enable_if<!val, void>::type deepCopy(T &dest,T &source) {
 	dest = source;
-	return dest;
 }
 
 template <typename T>
@@ -64,9 +63,8 @@ void deepCopy(T* dest, T* source) {
 }
 
 template <typename T, bool val = has_deref_operator<T>::value>
-typename enable_if<val, T>::type& deepCopy(T &dest, T &source) {
+typename enable_if<val, void>::type deepCopy(T &dest, T &source) {
 	*dest = *source;
-	return dest;
 }
 
 int main() {
