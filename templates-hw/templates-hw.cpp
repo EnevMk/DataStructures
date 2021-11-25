@@ -53,8 +53,9 @@ struct enable_if<false, T> {
 
 // TODO: implement this, without function overloading, use templates and SFINAE
 template <typename T, bool val = has_deref_operator<T>::value>
-void deepCopy(typename enable_if<!val, T>::type &dest, typename enable_if<!val, T>::type &source) {
+typename enable_if<!val, T>::type deepCopy(T &dest,T &source) {
 	dest = source;
+	return dest;
 }
 
 template <typename T>
@@ -62,17 +63,10 @@ void deepCopy(T* dest, T* source) {
 	*dest = *source;
 }
 
-/* template <typename T, bool val = has_deref_operator<ScopedPointer<T>>::value>
-void deepCopy(typename enable_if<val, ScopedPointer<T>>::type &dest, 
-			  typename enable_if<val, ScopedPointer<T>>::type &source) 
-			  
-{
-	*dest = *source;
-} */
-
 template <typename T, bool val = has_deref_operator<T>::value>
-void deepCopy(typename enable_if<val, T>::type &dest, typename enable_if<val, T>::type &source) {
+typename enable_if<val, T>::type& deepCopy(T &dest, T &source) {
 	*dest = *source;
+	return dest;
 }
 
 int main() {
@@ -85,15 +79,14 @@ int main() {
 		ScopedPointer<int> x(new int{100}), y(new int{2});
 		std::cout << "x = " << *x << " y = " << *y << std::endl;
 		//deepCopy<int>(x, y);
-		deepCopy<ScopedPointer<int>>(x, y);
+		deepCopy(x, y);
 		std::cout << "x = " << *x << " y = " << *y << std::endl;
 	}
 
 	{
 		float x = 3.14f, y = 17.3f;
 		std::cout << "x = " << x << " y = " << y << std::endl;
-		//deepCopy(x, y) can't find proper template
-		deepCopy<float>(x, y);
+		deepCopy(x, y);
 		std::cout << "x = " << x << " y = " << y << std::endl;
 	}
 
