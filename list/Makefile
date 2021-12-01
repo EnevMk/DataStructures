@@ -1,4 +1,4 @@
-list: list_tests.o
+all: list_tests.o
 
 	g++ -o list list_tests.o
 

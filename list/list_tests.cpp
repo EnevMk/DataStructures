@@ -237,7 +237,7 @@ TEMPLATE_TEST_CASE("List back modify", "[list][modify_end]", TEST_TYPES) {
 		REQUIRE(InstanceCounter::instanceCount == 0);
 	}
 }
-/*
+
 TEMPLATE_TEST_CASE("List iterator access", "[list][iterator]", TEST_TYPES) {
 	Registry<ListNode<TestType>>& memory = Registry<ListNode<TestType>>::get();
 
@@ -293,14 +293,14 @@ TEMPLATE_TEST_CASE("List iterator access", "[list][iterator]", TEST_TYPES) {
 			REQUIRE(instance.back() == TestType{0});
 			REQUIRE(instance.size() == 1);
 
-			copy.erase(copy.begin(), copy.end());
-			REQUIRE(copy.empty());
+			/* copy.erase(copy.begin(), copy.end());
+			REQUIRE(copy.empty()); */
 		}
 		REQUIRE_FALSE(memory.hasLeakedMemory());
 		REQUIRE(InstanceCounter::instanceCount == 0);
 	}
 }
-
+/*
 TEMPLATE_TEST_CASE("List element operations", "[list][advanced]", TEST_TYPES) {
 	Registry<ListNode<TestType>>& memory = Registry<ListNode<TestType>>::get();
 

@@ -7,21 +7,28 @@ int main() {
     list<int> myList(5, 9);
 
     list<int>::base_iterator<false> iter = myList.begin();
-    std::cout << *iter;
+    ++iter;
+    *iter = 17;
+    auto it = myList.insert(iter, 3, 93);
 
-    *iter = 18;
-    std::cout << *iter;
+    //std::cout << '\n' << *it;
 
+    std::vector<int> myVec(2, 20);
 
+    myList.insert(myList.cend(), myVec.cbegin(), myVec.cend());
 
-    //std::cout << is_const<const int>::value << '\n';
+    for (int &x : myList) {
 
-    //enable_if<true, const int>::type x = 4;
-    //enable_if<false, int>::type z = 4; // syntax err
-    //std::cout << x;
+        std::cout << x << ' ';
+    }
+    std::cout << '\n';
 
-    /* x = 10;
-    std::cout << x; */
+    auto afterErase = myList.erase(iter);
 
+    for (int &x : myList) {
+
+        std::cout << x << ' ';
+    }
+    std::cout << '\n' << *afterErase;
     return 0;
 }
