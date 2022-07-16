@@ -55,14 +55,14 @@ void Hashset<Value>::resize() {
 }
 
 template <typename Value>
-std::pair<typename Hashset<Value>::bucket_iterator, bool> Hashset<Value>:: insert(const Value& value) {
+std::pair<typename Hashset<Value>::iterator, bool> Hashset<Value>:: insert(const Value& value) {
 
-    auto iter = getBucket(value);
+    auto bucket = getBucket(value);
 
-    for (auto elem = iter->begin(); elem != iter->end(); elem++) {
+    for (auto elem = bucket->begin(); elem != bucket->end(); elem++) {
 
         if (*elem == value) {
-            return std::make_pair(elem, false);
+            return std::make_pair(const_iterator(bucket, elem, table.cend()), false);
         }
     }
 
@@ -70,10 +70,10 @@ std::pair<typename Hashset<Value>::bucket_iterator, bool> Hashset<Value>:: inser
         resize();
     }
 
-    iter->push_front(value);
+    bucket->push_front(value);
     count++;
 
-    return make_pair(iter->begin(), true);
+    return make_pair(const_iterator(bucket, bucket->begin(), table.cend()), true);
 }
 
 /* template <typename Value>
