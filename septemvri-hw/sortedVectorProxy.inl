@@ -25,18 +25,16 @@ public:
         if (Comparator()(ownerObject[index], elem)) {
             
             ownerObject.container[index] = elem;
-            
             ownerObject.pushForward(index);
         }
         else if (Comparator()(elem, ownerObject[index])) {
-            
+            //std::cout << "nazat " << elem->value << "  <  " << ownerObject.container[index]->value << '\n';
             ownerObject.container[index] = elem;
 
             ownerObject.drawBackward(index);
         }
         else {
-            
-            ownerObject[index] = elem;
+            ownerObject.container[index] = elem;
         }
         
         return *this;

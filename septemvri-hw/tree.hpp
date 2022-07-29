@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 #include <algorithm>
+#include <optional>
 
 #define NO_CHILDREN_NODES INT32_MIN
 
@@ -29,6 +30,8 @@ struct ptr_less {
 struct TreeNode {
 
 private:
+    
+    TreeNode* parent;
     int value;
 
     TreeNode();
@@ -36,15 +39,19 @@ private:
     SortedVector<TreeNode*, ptr_less<const TreeNode*>> subordinates;
 
     void loadNode(std::ifstream& is);
-    SortedVector<TreeNode*, ptr_less<const TreeNode*>> loadChildren(std::ifstream& is, std::queue<TreeNode*>& q);
+    SortedVector<TreeNode*, ptr_less<const TreeNode*>> loadChildren(std::ifstream& is, std::queue<TreeNode*>& q, TreeNode* parent);
+
+    TreeNode* getParentNode();
 
     /// binary search
     TreeNode* findChildNode(int value) const;
+    int findChildNodeIndex(int value) const;
     //TreeNode* findChildNode(int value);
 
     //~TreeNode();
     friend class Tree;
     friend struct ptr_less<const TreeNode*>;
+    friend class SortedVector<TreeNode*, ptr_less<const TreeNode*>>;
 };
 
 struct Tree {
@@ -56,15 +63,21 @@ private:
     //TreeNode* find(int value, const TreeNode* startingNode);
 
     void destroy(TreeNode* node);
-    bool contains(const TreeNode* container, const TreeNode* obj) const;
+    static bool contains(const TreeNode* container, const TreeNode* obj);
 
-    std::vector<const TreeNode*> getMatchingRoots(int value); // returns the root of obj, if obj is contained in container
-    std::vector<const TreeNode*> matchingRootsHelper(int val, const TreeNode* toCheck, std::vector<const TreeNode*>& matching);
+    std::vector<TreeNode*> getMatchingRoots(int value); // returns the root of obj, if obj is contained in container
+    std::vector<TreeNode*> matchingRootsHelper(int val, const TreeNode* toCheck, std::vector<TreeNode*>& matching);
+
+    void getDeepestSubtree(TreeNode* container, const TreeNode *obj, TreeNode*& current, int &level, int currentLevel);
 
     /// returns vector of roots of all subtrees equivalent to obj;
-    std::vector<const TreeNode*> getAllSubtrees(const Tree& obj);
+    std::vector<TreeNode*> getAllSubtrees(const Tree& obj);
 
-    void getSumOfRemainingNodes(const TreeNode* container, const TreeNode* obj, int &sumOfRemaining);
+    void getSumOfRemainingNodes(const TreeNode* container, const TreeNode* obj, std::optional<int> &sumOfRemaining, bool &flag);
+    
+    std::optional<int> getSumOfRemainingNodes(const TreeNode* container, const TreeNode* obj);
+    
+
 
     TreeNode* getParentNode(int childNodeValue, TreeNode* startingNode);
 public:

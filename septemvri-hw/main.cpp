@@ -6,30 +6,22 @@
 int main() {
 
     std::ifstream is;
-    is.open("C:\\Users\\ildiavolo\\Desktop\\dev\\SD\\septemvri-hw\\tree3.txt");
+    is.open("C:\\Users\\ildiavolo\\Desktop\\dev\\SD\\septemvri-hw\\tree5.txt");
 
     Tree t1(is);
 
     is.close();
 
-    is.open("C:\\Users\\ildiavolo\\Desktop\\dev\\SD\\septemvri-hw\\tree4.txt");
+    is.open("C:\\Users\\ildiavolo\\Desktop\\dev\\SD\\septemvri-hw\\tree6.txt");
 
     Tree t2(is);
-
-    //t1.contains(t2);
-
-    std::cout << t1.contains(t2);
-
-    /* is.open("C:\\Users\\ildiavolo\\Desktop\\dev\\SD\\septemvri-hw\\tree2.txt");
-
-    Tree sub(is);
     is.close();
+    //t1.contains(t2);
+    t1.remove(t2);
 
-    std::cout << "\n\n" << sub.toString() << "\n\n" << t.contains(sub) << "\n\n";
+    //std::cout << t1.contains(t2);
+    std::cout << t1.toString(); 
 
-    t.remove(sub);
-
-    std::cout << t.toString(); */
 
     /* SortedVector<int> s;
     s.add(14);
@@ -37,11 +29,11 @@ int main() {
     s.add(7);
     s.add(3);
 
+    s[2] = 99;
+
     for (int i = 0; i < s.size(); ++i) {
         std::cout << s[i] << ' ';
-    }
-
-    s[1] = 99; */
+    } */
 
 
     return 0;

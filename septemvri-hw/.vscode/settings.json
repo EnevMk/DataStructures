@@ -47,6 +47,7 @@
         "xtr1common": "cpp",
         "xutility": "cpp",
         "iostream": "cpp",
-        "string": "cpp"
+        "string": "cpp",
+        "optional": "cpp"
     }
 }

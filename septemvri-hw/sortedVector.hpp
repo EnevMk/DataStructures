@@ -25,7 +25,9 @@ public:
 
     size_t size() const;
 
-    typename Vector<T>::iterator begin() const;
+    void remove(int i);
+
+    //typename Vector<T>::iterator begin() const;
 
 private:
 

@@ -24,13 +24,13 @@ size_t SortedVector<T, Comparator>::size() const {
 template <typename T, class Comparator>
 void SortedVector<T, Comparator>::drawBackward(size_t index) {
         
-    if (index == 0 || Comparator()(container[index - 1], container[index]) /* container[index - 1] < container[index] */) {
+    if (index == 0 || Comparator()(container[index - 1], container[index])) {
         return;
     }
 
     T data = container[index];
 
-    while (index && Comparator()(data, container[index - 1])/*  data < container[index - 1] */) {
+    while (index && Comparator()(data, container[index - 1])) {
         container[index] = container[index - 1];
         --index;
     }
@@ -39,14 +39,13 @@ void SortedVector<T, Comparator>::drawBackward(size_t index) {
 
 template <typename T, class Comparator>
 void SortedVector<T, Comparator>::pushForward(size_t index) {
-    
-    if (index == this->container.size() || Comparator()(container[index], container[index + 1])  /* container[index] < container[index + 1] */) {
+
+    if (index == this->container.size() - 1 || Comparator()(container[index], container[index + 1])) {
         return;
     }
-
     T data = container[index];
 
-    while (index < container.size() - 1 && Comparator()(container[index + 1], data) /* container[index + 1] < data */ ) {
+    while (index < container.size() - 1 && Comparator()(container[index + 1], data)) {
         container[index] = container[index + 1];
         index++;
     }
@@ -54,8 +53,8 @@ void SortedVector<T, Comparator>::pushForward(size_t index) {
 }
 
 template <typename T, class Comparator>
-typename Vector<T>::iterator SortedVector<T, Comparator>::begin() const {
-    return this->container.begin();
+void SortedVector<T, Comparator>::remove(int i) {
+    this->container.erase(container.begin() + i);
 }
 
 #endif

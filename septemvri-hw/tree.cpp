@@ -35,7 +35,7 @@ void TreeNode::loadNode(std::ifstream& is) {
     
     
     this->value = root;
-    this->subordinates = loadChildren(is, elems);
+    this->subordinates = loadChildren(is, elems, this);
 
     while (!elems.empty()) {
 
@@ -46,14 +46,14 @@ void TreeNode::loadNode(std::ifstream& is) {
             TreeNode* node = elems.front();
             elems.pop();
             
-            node->subordinates = loadChildren(is, elems);
+            node->subordinates = loadChildren(is, elems, node);
             
             size--;
         }
     }
 }
 
-SortedVector<TreeNode*, ptr_less<const TreeNode*>> TreeNode::loadChildren(std::ifstream& is, std::queue<TreeNode*> &q) {
+SortedVector<TreeNode*, ptr_less<const TreeNode*>> TreeNode::loadChildren(std::ifstream& is, std::queue<TreeNode*> &q, TreeNode* parent) {
 
     SortedVector<TreeNode*, ptr_less<const TreeNode*>> childs;
     string strValue;
@@ -67,6 +67,7 @@ SortedVector<TreeNode*, ptr_less<const TreeNode*>> TreeNode::loadChildren(std::i
         TreeNode* node = new TreeNode{nodeValue};
         q.push(node);
         childs.add(node);
+        node->parent = parent;
     }
     is.get(); // getting the closing '|'
     if (is.peek() == '\n') is.get();
@@ -133,27 +134,14 @@ string Tree::toString() const {
     return res;
 }
 
-TreeNode* Tree::getParentNode(int childNodeValue, TreeNode* startingNode) {
+TreeNode* TreeNode::getParentNode() {
 
-    TreeNode* ptr = startingNode->findChildNode(childNodeValue);
-
-    if (ptr) return startingNode;
-
-    else {
-
-        for (int i = 0; i < startingNode->subordinates.size(); ++i) {
-
-            TreeNode* parent = getParentNode(childNodeValue, startingNode->subordinates[i]);
-
-            if (parent) return parent;
-        }
-    }
-    return nullptr;
+    return this->parent;
 }
 
-std::vector<const TreeNode*> Tree::getMatchingRoots(int value) {
+std::vector<TreeNode*> Tree::getMatchingRoots(int value) {
     
-    std::vector<const TreeNode*> matchingNodes;
+    std::vector<TreeNode*> matchingNodes;
 
     if (root.value == value) matchingNodes.push_back(&root);
 
@@ -162,10 +150,10 @@ std::vector<const TreeNode*> Tree::getMatchingRoots(int value) {
     return matchingNodes;
 }
 
-std::vector<const TreeNode*> Tree::matchingRootsHelper(int val, const TreeNode* toCheck, std::vector<const TreeNode*>& matching) {
+std::vector<TreeNode*> Tree::matchingRootsHelper(int val, const TreeNode* toCheck, std::vector<TreeNode*>& matching) {
 
 
-    const TreeNode* node = toCheck->findChildNode(val);
+    TreeNode* node = toCheck->findChildNode(val);
 
     if (node) matching.push_back(node);
 
@@ -188,7 +176,7 @@ bool Tree::contains(const Tree& obj) {
     return contains;
 }
 
-bool Tree::contains(const TreeNode* container, const TreeNode* obj) const {
+bool Tree::contains(const TreeNode* container, const TreeNode* obj) {
     
     bool foundAllChilds = true;
     Vector<const TreeNode*> childsMap;
@@ -196,7 +184,8 @@ bool Tree::contains(const TreeNode* container, const TreeNode* obj) const {
         
         const TreeNode* child = container->findChildNode(obj->subordinates[i]->value);
         
-        (child) ? childsMap.push_back(child) : foundAllChilds = false;
+        if (child) childsMap.push_back(child);
+        else { foundAllChilds = false; }
     }
 
     if (foundAllChilds) {
@@ -212,143 +201,85 @@ bool Tree::contains(const TreeNode* container, const TreeNode* obj) const {
 }
 
 bool Tree::remove(const Tree& obj) {
-    TreeNode* parent = getParentNode(obj.root.value, &root);
 
-    int rootToRemoveIndex = -1;// getMatchingRoot(&this->root, &obj.root);
+    TreeNode* sub = nullptr;
+    int lev = 0;
+    getDeepestSubtree(&root, &obj.root, sub, lev, 0);
 
-    for (int i = 0; i < parent->subordinates.size(); ++i) {
+    if (sub) {
+        
+        TreeNode* parent = sub->getParentNode();
+        auto sum = getSumOfRemainingNodes(sub, &obj.root);
+        int j = parent->findChildNodeIndex(sub->value);
 
-        const TreeNode* child = parent->subordinates[i]; // implicit cast from vector proxy to Treenode
-        if (child->value == obj.root.value) {
-            rootToRemoveIndex = i;
+        if (sum && !parent->findChildNode(sum.value())) {
+            parent->subordinates[j] = new TreeNode{sum.value()};
+        } else {
+            parent->subordinates.remove(j);
         }
+        destroy(sub);
+        remove(obj);
     }
 
-    int sum = 0;
-    getSumOfRemainingNodes(parent->subordinates[rootToRemoveIndex], &obj.root, sum);
-    
-    TreeNode* toRemove = parent->subordinates[rootToRemoveIndex];
-
-    parent->subordinates[rootToRemoveIndex] = new TreeNode(sum);
-    destroy(toRemove);
     return true;
-    /* if (rootToRemove) {
-        std::cout << "remo " << rootToRemove->value << '\n';
-        int sum = getSumOfRemainingNodes(rootToRemove, &obj.root, 0);
-        destroy(rootToRemove);//delete rootToRemove;
-
-        if (sum != 0) rootToRemove = new TreeNode(sum);
-
-        return true;
-    }
- */
-    return false;
 }
 
-std::vector<const TreeNode*> Tree::getAllSubtrees(const Tree& obj) {
-    auto matching = getMatchingRoots(obj.root.value);
-    
-    std::vector<const TreeNode*> roots;
+void Tree::getDeepestSubtree(TreeNode* container, const TreeNode *obj, TreeNode*& current, int &level, int currentLevel) {
 
-    for (int i = 0; i < matching.size(); ++i) {
-        
-        if (this->contains(matching[i], &obj.root)) roots.push_back(matching[i]);
+    
+    if (container->value == obj->value && currentLevel > level && contains(container, obj)) {
+        current = container;
+        level = currentLevel;
     }
+
+    for (int i = 0; i < container->subordinates.size(); ++i) {
+
+        getDeepestSubtree(container->subordinates[i], obj, current, level, currentLevel + 1);
+    }
+}
+
+std::vector<TreeNode*> Tree::getAllSubtrees(const Tree& obj) {
+    auto potentialRoots = getMatchingRoots(obj.root.value);
+    
+    std::vector<TreeNode*> roots;
+
+    copy_if(potentialRoots.cbegin(), potentialRoots.cend(), std::back_inserter(roots), 
+    [obj](TreeNode* t) { return contains(t, &obj.root); });
 
     return roots;
 }
 
-void Tree::getSumOfRemainingNodes(const TreeNode* container, const TreeNode* obj, int& sumOfRemaining) {
+std::optional<int> Tree::getSumOfRemainingNodes(const TreeNode* container, const TreeNode* obj) {
+    optional<int> sum = 0;
+    bool remaining = false;
+
+    getSumOfRemainingNodes(container, obj, sum, remaining);
+
+    return (remaining) ? sum : std::nullopt;
+}
+
+void Tree::getSumOfRemainingNodes(const TreeNode* container, const TreeNode* obj, std::optional<int>& sumOfRemaining, bool &flag) {
 
     Vector<pair<TreeNode*, TreeNode*>> foundChilds;
     for (int i = 0; i < container->subordinates.size(); ++i) {
 
-        TreeNode* child = obj->findChildNode((/* (TreeNode*) */container->subordinates[i])->value);
+        TreeNode* child = obj->findChildNode(container->subordinates[i]->value);
 
         if (child == nullptr) {
-            std::cout << "added sum: " << container->subordinates[i]->value << '\n';
-            sumOfRemaining += (/* (TreeNode*) */container->subordinates[i])->value;   
+            flag = true;
+            *sumOfRemaining += container->subordinates[i]->value;   
         }
         else {
-            std::cout << "found " << child->value << '\n';
             foundChilds.push_back(make_pair(container->subordinates[i], child));
         }
     }
 
     for (int i = 0; i < foundChilds.size(); ++i) {
-        getSumOfRemainingNodes(foundChilds[i].first, foundChilds[i].second, sumOfRemaining);
+        getSumOfRemainingNodes(foundChilds[i].first, foundChilds[i].second, sumOfRemaining, flag);
     }
-
-    //return sumOfRemaining;
 }
 
-/* TreeNode* Tree::find(int value, const TreeNode* startingNode) {
-    TreeNode* ptr = startingNode->findChildNode(value);
-
-    if (ptr) return ptr;
-
-    else {
-
-
-        for (int i = 0; i < startingNode->subordinates.size(); ++i) {
-
-            ptr = find(value, startingNode->subordinates[i]);
-
-            if (ptr) return ptr;
-        }
-    }
-} */
-
-/* const  */TreeNode* Tree::find(int value, const TreeNode* startingNode) const {
-    //if (startingNode->value == value) return startingNode;
-
-    //else {
-        /* const  */TreeNode* ptr = startingNode->findChildNode(value);
-
-        if (ptr) return ptr;
-
-        else {
-
-
-            for (int i = 0; i < startingNode->subordinates.size(); ++i) {
-
-                ptr = find(value, startingNode->subordinates[i]);
-
-                if (ptr) return ptr;
-            }
-        }
-    //}
-
-    return nullptr;
-}
-
-/* TreeNode* TreeNode::findChildNode(int value) {
-
-    int begin = 0, end = subordinates.size() - 1;
-
-    begin = 0, end = subordinates.size() - 1;
-
-    while (begin <= end) {
-
-        int mid = (end + begin) / 2;
-
-        if (((TreeNode*)this->subordinates[mid])->value == value) {
-            return subordinates[mid];
-        }
-
-        else if (((TreeNode*)this->subordinates[mid])->value > value) {
-            end = mid - 1;
-        }
-
-        else {
-            begin = mid + 1;
-        }
-    }
-
-    return nullptr;
-} */
-
-/* const  */TreeNode* TreeNode::findChildNode(int value) const {
+int TreeNode::findChildNodeIndex(int value) const {
 
     int begin = 0, end = subordinates.size() - 1;
 
@@ -356,18 +287,18 @@ void Tree::getSumOfRemainingNodes(const TreeNode* container, const TreeNode* obj
 
         int mid = (end + begin) / 2;
 
-        if (this->subordinates[mid]->value == value) {
-            return subordinates[mid];
-        }
+        if (this->subordinates[mid]->value == value) return mid;
 
-        else if (this->subordinates[mid]->value > value) {
-            end = mid - 1;
-        }
+        else if (this->subordinates[mid]->value > value) end = mid - 1;
 
-        else {
-            begin = mid + 1;
-        }
+        else { begin = mid + 1; }
     }
+    return -1;
+}
 
-    return nullptr;
+TreeNode* TreeNode::findChildNode(int value) const {
+
+    int i = findChildNodeIndex(value);
+
+    return (i != -1) ? subordinates[i] : nullptr;
 }
