@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cassert>
+#include <iostream>
 
 // if you comment out the next line, the tests will run on std::vector instead
 // Make sure all tests pass on std::vector before trying to test your implementation

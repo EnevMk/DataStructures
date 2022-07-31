@@ -4,11 +4,17 @@ TreeNode::TreeNode() {}
 
 TreeNode::TreeNode(int val) : value(val) {}
 
+TreeNode::TreeNode(int val, TreeNode* const parent) : value(val), parent(parent) {}
+
 int getNextNode(std::ifstream& is) {
 
     string strValue;
 
-    while (is.peek() == ' ') is.get();
+    int whitespaces = 0;
+    while (is.peek() == ' ') {
+        if (whitespaces > WHITESPACES_EXCESS) throw invalid_argument("tree in file is too messed up!");
+        is.get();
+    }
 
     while (is.peek() != ' ' && is.peek() != '|') {
         strValue += is.get();
@@ -16,10 +22,7 @@ int getNextNode(std::ifstream& is) {
     
     if (is.peek() == ' ') is.get();
     
-    if (strValue.empty()) {
-        
-        return NO_CHILDREN_NODES;
-    }
+    if (strValue.empty()) return NO_CHILDREN_NODES;
     
     return std::stoi(strValue);
 }
@@ -56,18 +59,27 @@ void TreeNode::loadNode(std::ifstream& is) {
 SortedVector<TreeNode*, ptr_less<const TreeNode*>> TreeNode::loadChildren(std::ifstream& is, std::queue<TreeNode*> &q, TreeNode* parent) {
 
     SortedVector<TreeNode*, ptr_less<const TreeNode*>> childs;
-    string strValue;
 
     if (is.peek() == '|') is.get();
     
     while (is.peek() != '|' && is.peek() != '\n') {
-        int nodeValue = getNextNode(is);
+        int nodeValue;
+        try {
+            nodeValue = getNextNode(is);
+        }
+        catch (...) {
+            for (int i = 0; i < childs.size();++i) {
+                delete childs[i];
+            }
+            throw;
+        }
+        
         if (nodeValue == NO_CHILDREN_NODES) break;
 
-        TreeNode* node = new TreeNode{nodeValue};
+        TreeNode* node = new TreeNode{nodeValue, parent};
         q.push(node);
         childs.add(node);
-        node->parent = parent;
+        //node->parent = parent;
     }
     is.get(); // getting the closing '|'
     if (is.peek() == '\n') is.get();
@@ -75,12 +87,93 @@ SortedVector<TreeNode*, ptr_less<const TreeNode*>> TreeNode::loadChildren(std::i
     return childs;
 }
 
+void Tree::saveToStream(std::ofstream& os) const {
+
+    if (!os.is_open()) throw invalid_argument("file state not valid");
+
+    std::queue<const TreeNode*> q;
+
+    os << "| " << root.value << " |\n";
+    q.push(&root);
+
+    int brotherhoods = 1;
+    while (!q.empty()) {
+        
+        const TreeNode* node = q.front();
+        q.pop();
+
+        int size = node->subordinates.size(), i = 0;
+        os << '|' << ' ';
+    
+        while (i < size) {
+            os << node->subordinates[i]->value << ' ';
+
+            q.push(node->subordinates[i]);
+            i++;
+        }
+        brotherhoods--;
+        if(brotherhoods == 0)  {
+            brotherhoods = q.size();
+            os << "|\n";
+        }    
+    }
+}
+
+Tree::Tree() {}
+
 Tree::Tree(ifstream& is) {
+
+    loadFromStream(is);
+}
+
+Tree::Tree(const Tree& obj) {
+    std::cout << "copy cons\n";
+    this->root.value = obj.root.value;
+
+    for (int i = 0; i < obj.root.subordinates.size(); ++i) {
+        this->root.subordinates.add(obj.root.subordinates[i]->clone(&root));
+    }
+}
+
+TreeNode* TreeNode::clone(TreeNode* parent) const {
+
+    TreeNode *toReturn = new TreeNode{this->value};
+
+    toReturn->parent = parent;
+
+    for (int i = 0; i < this->subordinates.size(); ++i) {
+        toReturn->subordinates.add(this->subordinates[i]->clone(toReturn));
+    }
+
+    return toReturn;
+}
+
+Tree::Tree(Tree&& obj) {
+    this->root.value = obj.root.value;
+
+    for (int i = 0; i < obj.root.subordinates.size(); ++i) {
+        ((TreeNode*)obj.root.subordinates[i])->parent = &root;
+
+        root.subordinates.add(obj.root.subordinates[i]);
+    }
+
+    for (int i = obj.root.subordinates.size() - 1; i >= 0; --i) {
+        obj.root.subordinates.remove(i);
+    }
+
+
+}
+
+void Tree::loadFromStream(std::ifstream& is) {
 
     if (!is.is_open()) throw invalid_argument("invalid file state");
 
-    //root = new TreeNode
-    this->root.loadNode(is);
+    try {
+        this->root.loadNode(is);
+    } catch (exception& obj) {
+        destroy(&root);
+        throw;
+    }
 }
 
 void Tree::destroy(TreeNode* node) {
@@ -139,9 +232,9 @@ TreeNode* TreeNode::getParentNode() {
     return this->parent;
 }
 
-std::vector<TreeNode*> Tree::getMatchingRoots(int value) {
+std::vector<const TreeNode*> Tree::getMatchingRoots(int value) const {
     
-    std::vector<TreeNode*> matchingNodes;
+    std::vector<const TreeNode*> matchingNodes;
 
     if (root.value == value) matchingNodes.push_back(&root);
 
@@ -150,7 +243,7 @@ std::vector<TreeNode*> Tree::getMatchingRoots(int value) {
     return matchingNodes;
 }
 
-std::vector<TreeNode*> Tree::matchingRootsHelper(int val, const TreeNode* toCheck, std::vector<TreeNode*>& matching) {
+std::vector<const TreeNode*> Tree::matchingRootsHelper(int val, const TreeNode* toCheck, std::vector<const TreeNode*>& matching) const {
 
 
     TreeNode* node = toCheck->findChildNode(val);
@@ -165,13 +258,13 @@ std::vector<TreeNode*> Tree::matchingRootsHelper(int val, const TreeNode* toChec
     return matching;
 }
 
-bool Tree::contains(const Tree& obj) {
+bool Tree::contains(const Tree& obj) const {
     auto roots = getMatchingRoots(obj.root.value);
     
     bool contains = false;
     for (int i = 0; i < roots.size() && !contains; ++i) {
         
-        if (!this->contains(roots[i], &obj.root)) contains = true;
+        if (this->contains(roots[i], &obj.root)) contains = true;
     }
     return contains;
 }
@@ -189,38 +282,40 @@ bool Tree::contains(const TreeNode* container, const TreeNode* obj) {
     }
 
     if (foundAllChilds) {
-        
         for(int i = 0; i < obj->subordinates.size(); ++i) {
             
             if (!contains(childsMap[i], obj->subordinates[i])) return false;
         }
-        return true;
     }
 
-    return false;
+    return foundAllChilds;
 }
 
 bool Tree::remove(const Tree& obj) {
 
     TreeNode* sub = nullptr;
     int lev = 0;
+
     getDeepestSubtree(&root, &obj.root, sub, lev, 0);
 
     if (sub) {
-        
         TreeNode* parent = sub->getParentNode();
+        
         auto sum = getSumOfRemainingNodes(sub, &obj.root);
         int j = parent->findChildNodeIndex(sub->value);
-
-        if (sum && !parent->findChildNode(sum.value())) {
-            parent->subordinates[j] = new TreeNode{sum.value()};
+        
+        if (sum) {
+            const TreeNode* childAlreadyExists = parent->findChildNode(sum.value());
+            
+            if (!childAlreadyExists || childAlreadyExists == sub) parent->subordinates[j] = new TreeNode{sum.value(), parent};
+            else { parent->subordinates.remove(j); }
         } else {
             parent->subordinates.remove(j);
         }
         destroy(sub);
         remove(obj);
     }
-
+    
     return true;
 }
 
@@ -238,13 +333,13 @@ void Tree::getDeepestSubtree(TreeNode* container, const TreeNode *obj, TreeNode*
     }
 }
 
-std::vector<TreeNode*> Tree::getAllSubtrees(const Tree& obj) {
+std::vector<const TreeNode*> Tree::getAllSubtrees(const Tree& obj) {
     auto potentialRoots = getMatchingRoots(obj.root.value);
     
-    std::vector<TreeNode*> roots;
+    std::vector<const TreeNode*> roots;
 
     copy_if(potentialRoots.cbegin(), potentialRoots.cend(), std::back_inserter(roots), 
-    [obj](TreeNode* t) { return contains(t, &obj.root); });
+    [&obj](const TreeNode* t) { return contains(t, &obj.root); });
 
     return roots;
 }

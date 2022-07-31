@@ -12,12 +12,11 @@
 #include <optional>
 
 #define NO_CHILDREN_NODES INT32_MIN
+#define WHITESPACES_EXCESS 30
 
 using namespace std;
 
 #include "sortedVector.hpp"
-
-//struct TreeNode;
 
 template <typename T>
 struct ptr_less {
@@ -36,6 +35,7 @@ private:
 
     TreeNode();
     TreeNode(int val);
+    TreeNode(int val, TreeNode* const parent);
     SortedVector<TreeNode*, ptr_less<const TreeNode*>> subordinates;
 
     void loadNode(std::ifstream& is);
@@ -46,9 +46,9 @@ private:
     /// binary search
     TreeNode* findChildNode(int value) const;
     int findChildNodeIndex(int value) const;
-    //TreeNode* findChildNode(int value);
 
-    //~TreeNode();
+    TreeNode* clone(TreeNode* parent) const;
+    
     friend class Tree;
     friend struct ptr_less<const TreeNode*>;
     friend class SortedVector<TreeNode*, ptr_less<const TreeNode*>>;
@@ -62,16 +62,18 @@ private:
     /* const  */TreeNode* find(int value, const TreeNode* startingNode) const;
     //TreeNode* find(int value, const TreeNode* startingNode);
 
+    Tree clone() const;
+
     void destroy(TreeNode* node);
     static bool contains(const TreeNode* container, const TreeNode* obj);
 
-    std::vector<TreeNode*> getMatchingRoots(int value); // returns the root of obj, if obj is contained in container
-    std::vector<TreeNode*> matchingRootsHelper(int val, const TreeNode* toCheck, std::vector<TreeNode*>& matching);
+    std::vector<const TreeNode*> getMatchingRoots(int value) const; // returns the root of obj, if obj is contained in container
+    std::vector<const TreeNode*> matchingRootsHelper(int val, const TreeNode* toCheck, std::vector<const TreeNode*>& matching) const;
 
     void getDeepestSubtree(TreeNode* container, const TreeNode *obj, TreeNode*& current, int &level, int currentLevel);
 
     /// returns vector of roots of all subtrees equivalent to obj;
-    std::vector<TreeNode*> getAllSubtrees(const Tree& obj);
+    std::vector<const TreeNode*> getAllSubtrees(const Tree& obj);
 
     void getSumOfRemainingNodes(const TreeNode* container, const TreeNode* obj, std::optional<int> &sumOfRemaining, bool &flag);
     
@@ -81,16 +83,22 @@ private:
 
     TreeNode* getParentNode(int childNodeValue, TreeNode* startingNode);
 public:
+    Tree();
+    Tree(const Tree& obj);
+    Tree(Tree&& obj);
+
+    void loadFromStream(std::ifstream& is);
     Tree(std::ifstream& is);
-    
     
     ~Tree();
 
     string toString() const;
 
-    bool contains(const Tree& obj);
+    bool contains(const Tree& obj) const;
 
     bool remove(const Tree& obj);
+
+    void saveToStream(std::ofstream& os) const;
 
 };
 

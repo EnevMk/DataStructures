@@ -48,6 +48,7 @@
         "xutility": "cpp",
         "iostream": "cpp",
         "string": "cpp",
-        "optional": "cpp"
+        "optional": "cpp",
+        "xhash": "cpp"
     }
 }

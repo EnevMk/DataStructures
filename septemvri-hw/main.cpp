@@ -1,28 +1,38 @@
 #include <iostream>
 #include "tree.hpp"
 #include "sortedVector.hpp"
+#include "UI.hpp"
+
 
 
 int main() {
 
-    std::ifstream is;
+    UI session;
+    session.run();
+
+    /* std::ifstream is;
     is.open("C:\\Users\\ildiavolo\\Desktop\\dev\\SD\\septemvri-hw\\tree5.txt");
 
-    Tree t1(is);
+    Tree t1;
+    t1.loadFromStream(is);
 
     is.close();
 
-    is.open("C:\\Users\\ildiavolo\\Desktop\\dev\\SD\\septemvri-hw\\tree6.txt");
+    is.open("C:\\Users\\ildiavolo\\Desktop\\dev\\SD\\septemvri-hw\\tree4.txt");
 
     Tree t2(is);
     is.close();
-    //t1.contains(t2);
-    t1.remove(t2);
 
-    //std::cout << t1.contains(t2);
-    std::cout << t1.toString(); 
+    Tree t3(t1);
 
+    t3.remove(t2);
+    
+    std::ofstream os("C:\\Users\\ildiavolo\\Desktop\\dev\\SD\\septemvri-hw\\milan.txt");
+    t3.saveToStream(os);
+    std::cout << t1.contains(t2);
+    os.close(); */
 
+    
     /* SortedVector<int> s;
     s.add(14);
     s.add(2);
