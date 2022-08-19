@@ -3,6 +3,8 @@
 
 #include "avl.hpp"
 
+using namespace std;
+
 template <typename Key, typename Value>
 avl_tree<Key, Value>::avl_tree() {}
 
@@ -26,7 +28,7 @@ typename avl_tree<Key, Value>::iterator avl_tree<Key, Value>::find(const Key& ke
 
     auto node = find(root, key);
 
-    if (node) return iterator(node);
+    if (node) return iterator(node, node->container.begin());
 
     else { return end(); }
 }
@@ -46,33 +48,33 @@ void avl_tree<Key, Value>::erase(const Key& key) {
 }
 
 template <typename Key, typename Value>
-std::vector<Value> avl_tree<Key, Value>::inorder_traversal() const {
+std::vector<pair<Key, Value>> avl_tree<Key, Value>::inorder_traversal() const {
 
     return inorder_traversal(root);
 }
 
 template <typename Key, typename Value>
 int avl_tree<Key, Value>::size() const {
-    return this->nodesCount;
+    return this->count;
 }
 
 template <typename Key, typename Value>
-
 avl_tree<Key, Value>::~avl_tree() {
     destroy(root);
 }
 
 template <typename Key, typename Value>
-std::vector<Value> avl_tree<Key, Value>::inorder_traversal(node* node) const {
+std::vector<pair<Key, Value>> avl_tree<Key, Value>::inorder_traversal(node* node) const {
 
-    std::vector<Value> vec;
+    std::vector<pair<Key, Value>> vec;
 
     if (node && node->left) vec = inorder_traversal(node->left);
 
-    vec.push_back(node->pair.second);
+    //vec.push_back(node->container.second);
+    vec.insert(vec.end(), node->container.cbegin(), node->container.cend());
 
     if (node->right) {
-        std::vector<Value> right_inorder = inorder_traversal(node->right);
+        std::vector<pair<Key, Value>> right_inorder = inorder_traversal(node->right);
 
         vec.insert(vec.end(), right_inorder.begin(), right_inorder.end());
     }
@@ -111,8 +113,8 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find(node* current, c
 
     if (!current) return nullptr;
 
-    else if (key < current->pair.first) return find(current->left, key);
-    else if (key > current->pair.first) return find(current->right, key);
+    else if (key < current->getKey()) return find(current->left, key);
+    else if (key > current->getKey()) return find(current->right, key);
 
     else { return current; }
 }
@@ -122,13 +124,17 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::insert(node* current,
 
     
     if (!current) {
-        this->nodesCount++;
-        return new node{std::make_pair(key, value)};
+        this->count++;
+        return new node{std::list<pair<Key, Value>>(1, std::make_pair(key, value))};
     }
-    else if (key < current->pair.first) current->left = insert(current->left, key, value);
-    else if (key > current->pair.first) current->right = insert(current->right, key, value);
+    else if (key < current->getKey()) current->left = insert(current->left, key, value);
+    else if (key > current->getKey()) current->right = insert(current->right, key, value);
 
-    else { return current; }
+    else { 
+        current->container.push_front(std::make_pair(key, value));
+        this->count++;
+        return current; 
+    }
 
     current->height = std::max(height(current->left), height(current->right)) + 1;
     
@@ -142,12 +148,12 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::erase(node* current, 
 
     if (!current) return nullptr;
 
-    if (key < current->pair.first) current->left = erase(current->left, key);
+    if (key < current->getKey()) current->left = erase(current->left, key);
 
-    else if (key > current->pair.first) current->right = erase(current->right, key);
+    else if (key > current->getKey()) current->right = erase(current->right, key);
 
     else {
-        this->nodesCount--;
+        this->count -= current->container.size();
         if (!current->left && !current->right) {
             delete current;
             return nullptr;
@@ -190,7 +196,7 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find_minimal_node(nod
 }
 
 template <typename Key, typename Value>
-typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::findRightMost() const {
+typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find_rightmost() const {
     node* temp = root;
 
     while (temp && temp->right) {
