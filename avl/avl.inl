@@ -142,9 +142,9 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::erase(node* current, 
 
     if (!current) return nullptr;
 
-    if (key < current->key) current->left = erase(current->left, key);
+    if (key < current->pair.first) current->left = erase(current->left, key);
 
-    else if (key > current->key) current->right = erase(current->right, key);
+    else if (key > current->pair.first) current->right = erase(current->right, key);
 
     else {
         this->nodesCount--;
