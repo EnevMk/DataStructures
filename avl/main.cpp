@@ -4,6 +4,16 @@
 
 #include "avl.hpp"
 
+void test_iter(const avl_tree<int, std::string>& t) {
+    avl_tree<int, std::string>::const_iterator itup = t.upper_bound(17);
+    auto itdown = t.lower_bound(3);
+
+    for (auto iter = itdown; iter != itup; ++iter) {
+        std::cout << iter->second << ':' << iter->first << '\n';
+        
+    }
+}
+
 int main() {
 
     /* std::multimap<int, std::string> stl;
@@ -33,54 +43,44 @@ int main() {
     tr.insert(2, "Fiorentina");
     tr.insert(2, "Napoli");
     tr.insert(7, "Bologna");
+    tr.insert(28, "REal");
 
     //tr.erase(2);
 
-    //tr.insert(1, "Napoli");
-
-    /* auto vec = tr.inorder_traversal();
-
-    for (auto x: vec) {
-        std::cout << x.second << '\n';
-    } */
 
     std::cout << '\n' << tr.height() << '\n' << tr.size();
 
-    /* auto it = tr.begin();
-    std::cout << (*it).second;
-    ++it;
-    std::cout << (*it).second;
-    ++it;
-    std::cout << it->second;
-    ++(++(++(++(++it))));
-    ++it;
-    std::cout << '\n' << (it == tr.end()) << '\n'; */
+    avl_tree<int, std::string>::iterator itup = tr.upper_bound(17);
+    auto itdown = tr.lower_bound(3);
+    
+    /* ++itdown;
+    ++itdown;
+    ++itdown; */
+    //++itdown;
 
-    for (auto iter = tr.begin(); iter != tr.cend(); ++iter) {
-
+    std::cout << (itdown == itup);
+    //test_iter(tr);
+    //std::cout << itup->second;
+    /* ++itup;
+    std::cout << itup->second;
+    ++itup;
+    std::cout << itup->second;
+    ++itup;
+    std::cout << itup->second; */
+    auto iter = itdown;
+    /* for (iter; iter != itup; ++iter) {
+        std::cout << "???\n";
         std::cout << iter->second << ':' << iter->first << '\n';
-
-        //if (iter->second == "Juve") break;
-    }
-    std::cout << "exit??\n";
-
-    /* it->second = "Real madrid";
-    std::cout << it->second; */
-    //it->first = 123;
-
-    /* std::cout << "\n\n";
-    auto iter = tr.find(19);
-
-    if (iter != tr.end()) {
-        std::cout << iter->second << '\n';
+        
     } */
-    /* std::cout << (*it).data;
-    ++it;
-    std::cout << (*it).data;
-    ++it;
-    std::cout << (*it).data;
-    ++it;
-    std::cout << (*it).data; */
+    
+    
+    auto range = tr.equal_range(2);
+
+    for (auto it = range.first; it != range.second; ++it) {
+        std::cout << it->second << ' ';
+    }
+
 
     return 0;
 }

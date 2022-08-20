@@ -245,5 +245,60 @@ void avl_tree<Key, Value>::destroy(node* n) {
     delete n;
 }
 
+template <typename Key, typename Value>
+typename avl_tree<Key, Value>::iterator avl_tree<Key, Value>::upper_bound(const Key& key) {
+
+    //auto node = find_eq_or_greater(root, key);
+    return iterator(root, key, 0);
+}
+
+template <typename Key, typename Value>
+typename avl_tree<Key, Value>::const_iterator avl_tree<Key, Value>::upper_bound(const Key& key) const {
+    return const_iterator(root, key, 0);
+}
+
+template <typename Key, typename Value>
+typename avl_tree<Key, Value>::iterator avl_tree<Key, Value>::lower_bound(const Key& key) {
+    
+    return iterator(root, key, 1);
+}
+
+template <typename Key, typename Value>
+typename avl_tree<Key, Value>::const_iterator avl_tree<Key, Value>::lower_bound(const Key& key) const {
+    return const_iterator(root, key, 1);
+}
+
+template <typename Key, typename Value>
+std::pair<typename avl_tree<Key, Value>::iterator, typename avl_tree<Key, Value>::iterator>
+avl_tree<Key, Value>::equal_range(const Key& key) {
+
+    auto node = find(root, key);
+
+    if (node) {
+        auto first = iterator(node, node->container.begin());
+        auto second = iterator(node, (--node->container.end()));
+
+        ++second;
+        return std::make_pair(first, second);
+    }
+
+    else { return std::make_pair(end(), end()); }
+}
+
+template <typename Key, typename Value>
+typename avl_tree<Key, Value>::const_iterator avl_tree<Key, Value>::equal_range(const Key& key) const {
+    auto node = find(root, key);
+
+    if (node) {
+        auto first = const_iterator(node, node->container.begin());
+        auto second = const_iterator(node, (--node->container.end()));
+
+        ++second;
+        return std::make_pair(first, second);
+    }
+
+    else { return std::make_pair(end(), end()); }
+}
+
 #endif
 

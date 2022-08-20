@@ -4,6 +4,7 @@
 #include <vector>
 #include <exception>
 #include <list>
+#include <functional>
 
 #include "type_traits.hpp"
 
@@ -17,9 +18,6 @@ private:
         
         value_type container;
 
-        /* Key key;
-        Value data; */
-        
         node *left{};
         node *right{};
         
@@ -40,123 +38,12 @@ private:
     int height(const node* n) const;
     int balance_factor(const node* n) const;
 
+public:
+    
     typedef typename std::list<std::pair<Key, Value>>::iterator list_iterator;
     typedef typename std::list<std::pair<Key, Value>>::const_iterator const_list_iterator;
 
-public:
-    
-    template<typename ListIterator = list_iterator, typename Type = std::pair<const Key, Value>>
-    class base_iterator {
-
-    private:
-
-        ListIterator element;
-
-        node* toShow;
-
-        node* current;
-        node* next;
-
-        int pointersToRemove = 0;
-
-        base_iterator(node* n): current(n) {
-            toShow = findNextNode();
-            if (toShow) element = toShow->container.begin();
-        }
-
-        base_iterator(node* n, ListIterator elem): current(n), toShow(n), element(elem) {}
-
-        friend class avl_tree;
-
-        void findNext() {
-
-
-            if (element == toShow->container.end()) {
-                toShow = findNextNode();
-                if (toShow) element = toShow->container.begin();
-            }
-        }
-
-        node* findNextNode() {
-
-            if(!current) return nullptr;
-            
-            if (current->left == nullptr) {
-                node* temp = current;
-                current = current->right;
-                
-                return temp;
-            } else {
-
-                next = current->left;
-
-                while (next->right && next->right != current) {
-                    next = next->right;
-                }
-
-                if (!next->right) {
-                    
-                    next->right = current;
-                    pointersToRemove++;
-
-                    current = current->left;
-                } else {
-                    next->right = nullptr;
-                    pointersToRemove--;
-
-                    node* temp = current;
-                    current = current->right;
-                    return temp;
-                }
-
-                return findNextNode();
-            }
-        }
-    public:
-        template <typename Q = Type>
-        typename enable_if<!is_const<Q>::value, Q>::type & operator*() {
-            return reinterpret_cast<std::pair<const Key, Value>&>(*element);
-        }
-
-        template <typename Q = Type>
-        const typename enable_if<is_const<Q>::value, Q>::type & operator*() const {
-            return *element;
-        }
-
-        template <typename Q = Type>
-        typename enable_if<!is_const<Q>::value, Q>::type * operator->() {
-            return &reinterpret_cast<std::pair<const Key, Value>&>(*element);
-        }
-
-        template <typename Q = Type>
-        const typename enable_if<is_const<Q>::value, Q>::type * operator->() const {
-            return &(*element);
-        }
-
-        template <typename T = ListIterator, typename Q = Type>
-        bool operator==(const base_iterator<T, Q>& other) {
-            return (this->element == other.element && this->current == other.current && this->toShow == other.toShow);
-        }
-
-        template <typename T = ListIterator, typename Q = Type>
-        bool operator!=(const base_iterator<T, Q>& other) {
-            return !(*this == other);
-        }
-
-        base_iterator& operator++() {
-
-            ++element;
-            findNext();
-    
-            return *this;
-        }
-
-        ~base_iterator() {
-            while (pointersToRemove) {
-                toShow = findNextNode();
-            }
-        }
-    };
+    #include "avl_iterator.inl"
 
     typedef base_iterator<list_iterator, std::pair<const Key, Value>> iterator;
     typedef base_iterator<const_list_iterator, const std::pair<Key, Value>> const_iterator;
@@ -194,11 +81,21 @@ public:
     std::vector<std::pair<Key, Value>> inorder_traversal() const;
     int size() const;
 
-    typename avl_tree<Key, Value>::iterator upper_bound(const Key& key);
+    iterator upper_bound(const Key& key);
+    const_iterator upper_bound(const Key& key) const;
+
+    iterator lower_bound(const Key& key);
+    const_iterator lower_bound(const Key& key) const;
+
+    std::pair<iterator, iterator> equal_range(const Key& key);
+    typename avl_tree<Key, Value>::const_iterator equal_range(const Key& key) const;
+
+
+
+
     ~avl_tree();
 
-    /* friend class iterator;
-    friend class const_iterator; */
+    
 private:
 
     std::vector<std::pair<Key, Value>> inorder_traversal(node* node) const;
