@@ -4,7 +4,7 @@
 
 #include "avl.hpp"
 
-void test_iter(const avl_tree<int, std::string>& t) {
+/* void test_iter(const avl_tree<int, std::string>& t) {
     avl_tree<int, std::string>::const_iterator itup = t.upper_bound(17);
     auto itdown = t.lower_bound(3);
 
@@ -12,26 +12,10 @@ void test_iter(const avl_tree<int, std::string>& t) {
         std::cout << iter->second << ':' << iter->first << '\n';
         
     }
-}
+} */
 
 int main() {
 
-    /* std::multimap<int, std::string> stl;
-
-    stl.insert(std::make_pair(3, "Roma"));
-    stl.insert(std::make_pair(3, "Roma"));
-
-    stl.erase(3);
-
-    std::cout << stl.empty();
-
-    auto it = stl.equal_range(3);
-
-    for (auto iter = it.first; iter != it.second; ++iter) {
-        std::cout << iter->second << ' ';
-    } */
-
-    //stl.insert()
 
     avl_tree<int, std::string> tr;
     
@@ -43,36 +27,19 @@ int main() {
     tr.insert(2, "Fiorentina");
     tr.insert(2, "Napoli");
     tr.insert(7, "Bologna");
-    tr.insert(28, "REal");
+    //tr.insert(28, "REal");
 
     //tr.erase(2);
 
 
-    std::cout << '\n' << tr.height() << '\n' << tr.size();
+    std::cout << '\n' << tr.height() << '\n' << tr.size() << '\n';
 
-    avl_tree<int, std::string>::iterator itup = tr.upper_bound(17);
-    auto itdown = tr.lower_bound(3);
+    auto itdown = tr.lower_bound(7), itup = tr.upper_bound(18);
+
+    for (auto it = itdown; it != itup; ++it) {
+        std::cout << it->second << " : " << it->first << '\n';
+    }
     
-    /* ++itdown;
-    ++itdown;
-    ++itdown; */
-    //++itdown;
-
-    std::cout << (itdown == itup);
-    //test_iter(tr);
-    //std::cout << itup->second;
-    /* ++itup;
-    std::cout << itup->second;
-    ++itup;
-    std::cout << itup->second;
-    ++itup;
-    std::cout << itup->second; */
-    auto iter = itdown;
-    /* for (iter; iter != itup; ++iter) {
-        std::cout << "???\n";
-        std::cout << iter->second << ':' << iter->first << '\n';
-        
-    } */
     
     
     auto range = tr.equal_range(2);

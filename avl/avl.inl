@@ -34,8 +34,8 @@ typename avl_tree<Key, Value>::iterator avl_tree<Key, Value>::find(const Key& ke
 }
 
 template <typename Key, typename Value>
-void avl_tree<Key, Value>::insert(const Key& key, const Value& value) {
-    root = insert(root, key, value);
+void avl_tree<Key, Value>::insert(const Key& key, const Value& val) {
+    root = insert(root, key, val, nullptr);
 
     root->height = std::max(height(root->left), height(root->right)) + 1;
 }
@@ -120,18 +120,18 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find(node* current, c
 }
 
 template <typename Key, typename Value>
-typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::insert(node* current, const Key& key, const Value& value) {
+typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::insert(node* current, const Key& key, const Value& val, node* parent) {
 
     
     if (!current) {
         this->count++;
-        return new node{std::list<pair<Key, Value>>(1, std::make_pair(key, value))};
+        return new node{std::list<pair<const Key, Value>>(1, std::make_pair(key, val)), parent};
     }
-    else if (key < current->getKey()) current->left = insert(current->left, key, value);
-    else if (key > current->getKey()) current->right = insert(current->right, key, value);
+    else if (key < current->getKey()) current->left = insert(current->left, key, val, current);
+    else if (key > current->getKey()) current->right = insert(current->right, key, val, current);
 
     else { 
-        current->container.push_front(std::make_pair(key, value));
+        current->container.push_front(std::make_pair(key, val));
         this->count++;
         return current; 
     }
@@ -169,7 +169,7 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::erase(node* current, 
             return temp;
         }
         else {
-            auto min = find_minimal_node(current->right, current);
+            auto min = extract_minimal_node(current->right, current);
             min->left = current->left;
             min->right = current->right;
             delete current;
@@ -183,7 +183,7 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::erase(node* current, 
 }
 
 template <typename Key, typename Value>
-typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find_minimal_node(node* startingNode, node* parent) {
+typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::extract_minimal_node(node* startingNode, node* parent) {
 
     node *current = startingNode;
     
@@ -192,6 +192,16 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find_minimal_node(nod
         current = current->left;
     }
     parent->left = current->right;
+    return current;
+}
+
+template <typename Key, typename Value>
+typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find_minimal_node(node* startingNode) const {
+    node* current = startingNode;
+
+    while (current && current->left) {
+        current = current->left;
+    }
     return current;
 }
 
@@ -208,31 +218,43 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find_rightmost() cons
 
 template <typename Key, typename Value>
 typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::right_rotation(node* n) {
-    auto new_parent = n->left;
-    auto rigth_subtree = new_parent->right;
+    std::cout << "right rot\n";
+    auto new_root = n->left;
+    auto rigth_subtree = new_root->right;
 
-    new_parent->right = n;
+    new_root->right = n;
     n->left = rigth_subtree;
+
+    auto parent = n->parent;
+    n->parent = new_root;
+    if (rigth_subtree) rigth_subtree->parent = n;
+    new_root->parent = parent;
 
     n->height = std::max(height(n->left), height(n->right)) + 1;
 
-    new_parent->height = std::max(height(new_parent->left), height(new_parent->right)) + 1;
+    new_root->height = std::max(height(new_root->left), height(new_root->right)) + 1;
 
-    return new_parent;
+    return new_root;
 }
 
 template <typename Key, typename Value>
 typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::left_rotation(node* n) {
-    auto new_parent = n->right;
-    auto left_subtree = new_parent->left;
+    
+    auto new_root = n->right;
+    auto left_subtree = new_root->left;
 
-    new_parent->left = n;
+    new_root->left = n;
     n->right = left_subtree;
 
-    n->height = std::max(height(n->left), height(n->right)) + 1;
-    new_parent->height = std::max(height(new_parent->left), height(new_parent->right)) + 1;
+    auto parent = n->parent;
+    n->parent = new_root;
+    if (left_subtree) left_subtree->parent = n;
+    new_root->parent = parent;
 
-    return new_parent;
+    n->height = std::max(height(n->left), height(n->right)) + 1;
+    new_root->height = std::max(height(new_root->left), height(new_root->right)) + 1;
+
+    return new_root;
 }
 
 template <typename Key, typename Value>
@@ -248,24 +270,31 @@ void avl_tree<Key, Value>::destroy(node* n) {
 template <typename Key, typename Value>
 typename avl_tree<Key, Value>::iterator avl_tree<Key, Value>::upper_bound(const Key& key) {
 
-    //auto node = find_eq_or_greater(root, key);
-    return iterator(root, key, 0);
+    auto node = find_eq_or_greater(root, key);
+
+    if (node && node->getKey() == key) return ++iterator(node);
+
+    return iterator(node);
 }
 
 template <typename Key, typename Value>
 typename avl_tree<Key, Value>::const_iterator avl_tree<Key, Value>::upper_bound(const Key& key) const {
-    return const_iterator(root, key, 0);
+    auto node = find_eq_or_greater(root, key);
+
+    if (node && node->getKey() == key) return ++const_iterator(node);
+
+    return const_iterator(node);
 }
 
 template <typename Key, typename Value>
 typename avl_tree<Key, Value>::iterator avl_tree<Key, Value>::lower_bound(const Key& key) {
     
-    return iterator(root, key, 1);
+    return iterator(find_eq_or_greater(root, key));
 }
 
 template <typename Key, typename Value>
 typename avl_tree<Key, Value>::const_iterator avl_tree<Key, Value>::lower_bound(const Key& key) const {
-    return const_iterator(root, key, 1);
+    return const_iterator(find_eq_or_greater(root, key));
 }
 
 template <typename Key, typename Value>
@@ -298,6 +327,20 @@ typename avl_tree<Key, Value>::const_iterator avl_tree<Key, Value>::equal_range(
     }
 
     else { return std::make_pair(end(), end()); }
+}
+
+template <typename Key, typename Value>
+typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find_eq_or_greater(node* n, const Key& key) const {
+
+    if (!n) return nullptr;
+
+    else if (n->getKey() >= key) {
+        auto node = find_eq_or_greater(n->left, key);
+
+        return (node) ? node : n;
+    }
+
+    else { return find_eq_or_greater(n->right, key); }
 }
 
 #endif
