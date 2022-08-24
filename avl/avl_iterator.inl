@@ -34,6 +34,15 @@ private:
         }
     }
 
+    void findPrev() {
+        if (element == current->container.begin()) {
+            findPreviousNode();
+            if (current) element = --(current->container.end());
+        } else {
+            --element;
+        }
+    }
+
     void findNextNode() {
 
         if(!current) return;
@@ -47,6 +56,26 @@ private:
             node* p = current->parent;
 
             while (p != nullptr && p->right == current) {
+                current = p;
+                p = p->parent;
+            }
+            current = p;
+        }
+    }
+
+    void findPreviousNode() {
+
+        if (!current) return;
+
+        if (current->left) {
+            current = current->left;
+
+            while(current->right) current = current->right;
+        }
+        else if (current->parent) {
+            node *p = current->parent;
+
+            while (p && p->left == current) {
                 current = p;
                 p = p->parent;
             }
@@ -93,6 +122,24 @@ public:
         findNext();
 
         return *this;
+    }
+
+    base_iterator operator++(int) {
+        base_iterator toReturn(*this);
+
+        ++*this;
+        return toReturn;
+    }
+
+    base_iterator& operator--() {
+        findPrev();
+    }
+
+    base_iterator operator--(int) {
+        base_iterator res(*this);
+
+        --*this;
+        return res;
     }
 };
 #endif
