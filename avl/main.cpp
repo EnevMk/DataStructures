@@ -18,6 +18,8 @@ using namespace std;
 } */
 
 //template <typename Key, typename Value>
+
+
 void save_tree_binary(const std::string& path, const avl_tree<int, std::string>& tr) {
 
     std::ofstream saveFileKeys(path + "/keys", ios::binary);
@@ -149,7 +151,7 @@ int main() {
     tr.insert(7, "Bologna");
     //tr.insert(28, "REal");
 
-
+    std::cout << "unique: " << tr.unique_keys() << '\n';
 
     /* avl_tree<int, std::string>::iterator it = tr.lower_bound(3);
     auto itup = tr.upper_bound(20);

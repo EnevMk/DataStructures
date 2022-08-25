@@ -9,7 +9,7 @@
 
 #include "type_traits.hpp"
 
-template <typename Key, typename Value>
+template <typename Key, typename Value, typename Compare = std::less<Key>>
 class avl_tree {
 
 private:
@@ -29,7 +29,6 @@ private:
         Key getKey() const {
             return container.front().first;
         }
-        friend node* load_tree_helper(const std::vector<int>& v/* std::ifstream& is */, int begin, int end, const std::string& path);
     } *root = nullptr;
 
     int elems_count = 0;
@@ -58,7 +57,7 @@ public:
     const_iterator end() const;
     iterator end();
 
-    typename avl_tree<Key, Value>::iterator find(const Key& key) const;
+    const_iterator find(const Key& key) const;
     void insert(const Key& key, const Value& val);
     void erase(const Key& key);
     std::vector<std::pair<Key, Value>> inorder_traversal() const;
@@ -76,7 +75,7 @@ public:
     const_iterator lower_bound(const Key& key) const;
 
     std::pair<iterator, iterator> equal_range(const Key& key);
-    typename avl_tree<Key, Value>::const_iterator equal_range(const Key& key) const;
+    std::pair<const_iterator, const_iterator> equal_range(const Key& key) const;
 
 
     ~avl_tree();
@@ -110,7 +109,11 @@ private:
 
     void destroy(node* n);
 
-    friend node* load_tree_helper(const std::vector<int>& v/* std::ifstream& is */, int begin, int end, const std::string& path);
+    bool equal(const Key& a, const Key& b) const;
+
+    //template <typename T, typename V>
+    friend node* load_tree_helper(const std::vector<int>& v, int begin, int end, const std::string& path);
+    
     friend void load_tree_binary(const std::string& path, avl_tree<int, std::string>& tr);
 };
 

@@ -5,66 +5,66 @@
 
 using namespace std;
 
-template <typename Key, typename Value>
-avl_tree<Key, Value>::avl_tree() {}
+template <typename Key, typename Value, typename Compare>
+avl_tree<Key, Value, Compare>::avl_tree() {}
 
 /* template <typename Key, typename Value>
 avl_tree<Key, Value>::avl_tree(const std::list<std::pair<const Key, Value>> val) {
     this->root->container = val;
 } */
 
-template <typename Key, typename Value>
-int avl_tree<Key, Value>::height() const {
+template <typename Key, typename Value, typename Compare>
+int avl_tree<Key, Value, Compare>::height() const {
     return height(root);
 }
 
-template <typename Key, typename Value>
-int avl_tree<Key, Value>::height(const node* n) const {
+template <typename Key, typename Value, typename Compare>
+int avl_tree<Key, Value, Compare>::height(const node* n) const {
     return (n) ? n->height : 0;
 }
 
-template <typename Key, typename Value>
-int avl_tree<Key, Value>::balance_factor(const node* n) const {
+template <typename Key, typename Value, typename Compare>
+int avl_tree<Key, Value, Compare>::balance_factor(const node* n) const {
     return (n) ? height(n->left) - height(n->right) : 0;
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::iterator avl_tree<Key, Value>::find(const Key& key) const {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator avl_tree<Key, Value, Compare>::find(const Key& key) const {
 
     auto node = find(root, key);
 
-    if (node) return iterator(node, node->container.begin());
+    if (node) return const_iterator(node, node->container.begin());
 
     else { return end(); }
 }
 
-template <typename Key, typename Value>
-void avl_tree<Key, Value>::insert(const Key& key, const Value& val) {
+template <typename Key, typename Value, typename Compare>
+void avl_tree<Key, Value, Compare>::insert(const Key& key, const Value& val) {
     root = insert(root, key, val, nullptr);
 
     root->height = std::max(height(root->left), height(root->right)) + 1;
 }
 
-template <typename Key, typename Value>
-void avl_tree<Key, Value>::erase(const Key& key) {
+template <typename Key, typename Value, typename Compare>
+void avl_tree<Key, Value, Compare>::erase(const Key& key) {
     root = erase(root, key);
     
     root->height = std::max(height(root->left), height(root->right)) + 1;
 }
 
-template <typename Key, typename Value>
-std::vector<pair<Key, Value>> avl_tree<Key, Value>::inorder_traversal() const {
+template <typename Key, typename Value, typename Compare>
+std::vector<pair<Key, Value>> avl_tree<Key, Value, Compare>::inorder_traversal() const {
 
     return inorder_traversal(root);
 }
 
-template <typename Key, typename Value>
-int avl_tree<Key, Value>::size() const {
+template <typename Key, typename Value, typename Compare>
+int avl_tree<Key, Value, Compare>::size() const {
     return this->elems_count;
 }
 
-template <typename Key, typename Value>
-int avl_tree<Key, Value>::count(const Key& k) const {
+template <typename Key, typename Value, typename Compare>
+int avl_tree<Key, Value, Compare>::count(const Key& k) const {
 
     auto node = find(root, k);
 
@@ -73,24 +73,24 @@ int avl_tree<Key, Value>::count(const Key& k) const {
     return 0;
 }
 
-template <typename Key, typename Value>
-int avl_tree<Key, Value>::count(const_iterator it) const {
+template <typename Key, typename Value, typename Compare>
+int avl_tree<Key, Value, Compare>::count(const_iterator it) const {
 
     return it.current->container.size();
 }
 
-template <typename Key, typename Value>
-int avl_tree<Key, Value>::unique_keys() const {
+template <typename Key, typename Value, typename Compare>
+int avl_tree<Key, Value, Compare>::unique_keys() const {
     return this->nodes;
 }
 
-template <typename Key, typename Value>
-avl_tree<Key, Value>::~avl_tree() {
+template <typename Key, typename Value, typename Compare>
+avl_tree<Key, Value, Compare>::~avl_tree() {
     destroy(root);
 }
 
-template <typename Key, typename Value>
-std::vector<pair<Key, Value>> avl_tree<Key, Value>::inorder_traversal(node* node) const {
+template <typename Key, typename Value, typename Compare>
+std::vector<pair<Key, Value>> avl_tree<Key, Value, Compare>::inorder_traversal(node* node) const {
 
     std::vector<pair<Key, Value>> vec;
 
@@ -108,8 +108,8 @@ std::vector<pair<Key, Value>> avl_tree<Key, Value>::inorder_traversal(node* node
     return vec;
 }
 
-template <typename Key, typename Value>
-void avl_tree<Key, Value>::rebalance(node*& startingNode) {
+template <typename Key, typename Value, typename Compare>
+void avl_tree<Key, Value, Compare>::rebalance(node*& startingNode) {
 
     int balance = balance_factor(startingNode);
 
@@ -134,19 +134,21 @@ void avl_tree<Key, Value>::rebalance(node*& startingNode) {
     }
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find(node* current, const Key& key) const {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::node* 
+avl_tree<Key, Value, Compare>::find(node* current, const Key& key) const {
 
     if (!current) return nullptr;
 
-    else if (key < current->getKey()) return find(current->left, key);
-    else if (key > current->getKey()) return find(current->right, key);
+    else if (Compare()(key, current->getKey()))/* key < current->getKey() */ return find(current->left, key);
+    else if (Compare()(current->getKey(), key)) return find(current->right, key);
 
     else { return current; }
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::insert(node* current, const Key& key, const Value& val, node* parent) {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::node* 
+avl_tree<Key, Value, Compare>::insert(node* current, const Key& key, const Value& val, node* parent) {
 
     
     if (!current) {
@@ -154,8 +156,8 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::insert(node* current,
         this->nodes++;
         return new node{std::list<pair<const Key, Value>>(1, std::make_pair(key, val)), parent};
     }
-    else if (key < current->getKey()) current->left = insert(current->left, key, val, current);
-    else if (key > current->getKey()) current->right = insert(current->right, key, val, current);
+    else if (Compare()(key, current->getKey())) current->left = insert(current->left, key, val, current);
+    else if (Compare()(current->getKey(), key)) current->right = insert(current->right, key, val, current);
 
     else { 
         current->container.push_front(std::make_pair(key, val));
@@ -170,18 +172,18 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::insert(node* current,
     return current;
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::erase(node* current, const Key& key) {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::erase(node* current, const Key& key) {
 
     if (!current) return nullptr;
 
-    if (key < current->getKey()) current->left = erase(current->left, key);
+    if (Compare()(key, current->getKey())) current->left = erase(current->left, key);
 
-    else if (key > current->getKey()) current->right = erase(current->right, key);
+    else if (Compare()(current->getKey(), key)) current->right = erase(current->right, key);
 
     else {
         this->elems_count -= current->container.size();
-        this->nodes -= current->container.size();
+        this->nodes -= 1;
         if (!current->left && !current->right) {
             delete current;
             return nullptr;
@@ -210,8 +212,8 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::erase(node* current, 
     return current;
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::extract_minimal_node(node* startingNode, node* parent) {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::extract_minimal_node(node* startingNode, node* parent) {
 
     node *current = startingNode;
     
@@ -223,8 +225,8 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::extract_minimal_node(
     return current;
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find_minimal_node(node* startingNode) const {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::find_minimal_node(node* startingNode) const {
     node* current = startingNode;
 
     while (current && current->left) {
@@ -233,8 +235,8 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find_minimal_node(nod
     return current;
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::right_rotation(node* n) {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::right_rotation(node* n) {
     auto new_root = n->left;
     auto rigth_subtree = new_root->right;
 
@@ -253,8 +255,8 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::right_rotation(node* 
     return new_root;
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::left_rotation(node* n) {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::left_rotation(node* n) {
     
     auto new_root = n->right;
     auto left_subtree = new_root->left;
@@ -273,8 +275,8 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::left_rotation(node* n
     return new_root;
 }
 
-template <typename Key, typename Value>
-void avl_tree<Key, Value>::destroy(node* n) {
+template <typename Key, typename Value, typename Compare>
+void avl_tree<Key, Value, Compare>::destroy(node* n) {
 
     if (!n) return;
 
@@ -285,39 +287,39 @@ void avl_tree<Key, Value>::destroy(node* n) {
     delete n;
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::iterator avl_tree<Key, Value>::upper_bound(const Key& key) {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::iterator avl_tree<Key, Value, Compare>::upper_bound(const Key& key) {
 
     auto node = find_eq_or_greater(root, key);
 
-    if (node && node->getKey() == key) return ++iterator(node);
+    if (node && equal(key, node->getKey())) return ++iterator(node);
 
     return iterator(node);
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::const_iterator avl_tree<Key, Value>::upper_bound(const Key& key) const {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator avl_tree<Key, Value, Compare>::upper_bound(const Key& key) const {
     auto node = find_eq_or_greater(root, key);
 
-    if (node && node->getKey() == key) return ++const_iterator(node);
+    if (node && equal(key, node->getKey())) return ++const_iterator(node);
 
     return const_iterator(node);
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::iterator avl_tree<Key, Value>::lower_bound(const Key& key) {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::iterator avl_tree<Key, Value, Compare>::lower_bound(const Key& key) {
     
     return iterator(find_eq_or_greater(root, key));
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::const_iterator avl_tree<Key, Value>::lower_bound(const Key& key) const {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator avl_tree<Key, Value, Compare>::lower_bound(const Key& key) const {
     return const_iterator(find_eq_or_greater(root, key));
 }
 
-template <typename Key, typename Value>
-std::pair<typename avl_tree<Key, Value>::iterator, typename avl_tree<Key, Value>::iterator>
-avl_tree<Key, Value>::equal_range(const Key& key) {
+template <typename Key, typename Value, typename Compare>
+std::pair<typename avl_tree<Key, Value, Compare>::iterator, typename avl_tree<Key, Value, Compare>::iterator>
+avl_tree<Key, Value, Compare>::equal_range(const Key& key) {
 
     auto node = find(root, key);
 
@@ -332,8 +334,9 @@ avl_tree<Key, Value>::equal_range(const Key& key) {
     else { return std::make_pair(end(), end()); }
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::const_iterator avl_tree<Key, Value>::equal_range(const Key& key) const {
+template <typename Key, typename Value, typename Compare>
+std::pair<typename avl_tree<Key, Value, Compare>::const_iterator, typename avl_tree<Key, Value, Compare>::const_iterator>
+avl_tree<Key, Value, Compare>::equal_range(const Key& key) const {
     auto node = find(root, key);
 
     if (node) {
@@ -347,12 +350,12 @@ typename avl_tree<Key, Value>::const_iterator avl_tree<Key, Value>::equal_range(
     else { return std::make_pair(end(), end()); }
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find_eq_or_greater(node* n, const Key& key) const {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::find_eq_or_greater(node* n, const Key& key) const {
 
     if (!n) return nullptr;
 
-    else if (n->getKey() >= key) {
+    else if (/* n->getKey() >= key */Compare()(key, n->getKey()) || equal(key, n->getKey())) {
         auto node = find_eq_or_greater(n->left, key);
 
         return (node) ? node : n;
@@ -361,46 +364,51 @@ typename avl_tree<Key, Value>::node* avl_tree<Key, Value>::find_eq_or_greater(no
     else { return find_eq_or_greater(n->right, key); }
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::const_iterator 
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator 
 
-avl_tree<Key, Value>::cbegin() const {
+avl_tree<Key, Value, Compare>::cbegin() const {
     return const_iterator(find_minimal_node(root));
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::const_iterator
-avl_tree<Key, Value>::begin() const {
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator
+avl_tree<Key, Value, Compare>::begin() const {
     return const_iterator(find_minimal_node(root));
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::iterator
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::iterator
 
-avl_tree<Key, Value>::begin() {
+avl_tree<Key, Value, Compare>::begin() {
     auto it = iterator(find_minimal_node(root));
     return it;
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::const_iterator
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator
 
-avl_tree<Key, Value>::cend() const {
+avl_tree<Key, Value, Compare>::cend() const {
     return const_iterator(nullptr);
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::const_iterator
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator
 
-avl_tree<Key, Value>::end() const {
+avl_tree<Key, Value, Compare>::end() const {
     return const_iterator(nullptr);
 }
 
-template <typename Key, typename Value>
-typename avl_tree<Key, Value>::iterator
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::iterator
 
-avl_tree<Key, Value>::end() {
+avl_tree<Key, Value, Compare>::end() {
     return iterator(nullptr);
+}
+
+template <typename Key, typename Value, typename Compare>
+bool avl_tree<Key, Value, Compare>::equal(const Key& a, const Key& b) const {
+    return !Compare()(a, b) && !Compare()(b, a);
 }
 
 #endif
