@@ -53,6 +53,16 @@ void avl_tree<Key, Value, Compare>::erase(const Key& key) {
 }
 
 template <typename Key, typename Value, typename Compare>
+void avl_tree<Key, Value, Compare>::erase(iterator position) {
+
+    position.current->container.erase(position.element);
+
+    if (position.current->container.size() == 0) {
+        erase_node(position.current);
+    }
+}
+
+template <typename Key, typename Value, typename Compare>
 std::vector<pair<Key, Value>> avl_tree<Key, Value, Compare>::inorder_traversal() const {
 
     return inorder_traversal(root);
@@ -182,34 +192,42 @@ typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::era
     else if (Compare()(current->getKey(), key)) current->right = erase(current->right, key);
 
     else {
-        this->elems_count -= current->container.size();
-        this->nodes -= 1;
-        if (!current->left && !current->right) {
-            delete current;
-            return nullptr;
-        }
-        else if (!current->left) {
-            node* temp = current->right;
-            delete current;
-            return temp;
-        }
-        else if (!current->right) {
-            node* temp = current->left;
-            delete current;
-            return temp;
-        }
-        else {
-            auto min = extract_minimal_node(current->right, current);
-            min->left = current->left;
-            min->right = current->right;
-            delete current;
-            return min;
-        }
+        erase_node(current);
     }
 
     current->height = std::max(height(current->left), height(current->right)) + 1;
     rebalance(current);
     return current;
+}
+
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::erase_node(node* current) {
+
+    this->elems_count -= current->container.size();
+    this->nodes -= 1;
+
+    node* substitute;
+    substitute->parent = current->parent;
+
+    if (!current->left && !current->right) {
+        delete current;
+        substitute = nullptr;
+    }
+    else if (!current->left) {
+        substitute = current->right;
+        delete current;
+    }
+    else if (!current->right) {
+        substitute = current->left;
+        delete current;
+    }
+    else {
+        substitute = extract_minimal_node(current->right, current);
+        substitute->left = current->left;
+        substitute->right = current->right;
+        delete current;
+    }
+    return substitute;
 }
 
 template <typename Key, typename Value, typename Compare>

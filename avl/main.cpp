@@ -80,7 +80,7 @@ std::vector<int> load_sorted_arr(const string& path) {
     return arr;
 }
 
-avl_tree<int, std::string>::node* load_tree_helper(const vector<int>& v /* std::ifstream& is */, int begin, int end, const std::string& path) {
+/* avl_tree<int, std::string>::node* load_tree_helper(const vector<int>& v, int begin, int end, const std::string& path) {
 
     if (begin > end) return nullptr;
 
@@ -125,44 +125,58 @@ avl_tree<int, std::string>::node* load_tree_helper(const vector<int>& v /* std::
 
     return root;
     
-}
+} */
 
-void load_tree_binary(const std::string& path, avl_tree<int, std::string>& tr) {
+/* void load_tree_binary(const std::string& path, avl_tree<int, std::string>& tr) {
     
     auto keys = load_sorted_arr(path);
     
     tr.root = load_tree_helper(keys, 0, keys.size() - 1, path);
 
     tr.root->parent = nullptr;
-}
+} */
+
+class IntWrapper {
+
+public:
+    int num;
+
+    IntWrapper(int n) : num(n) {}
+};
+
+struct comp {
+    bool operator() (const IntWrapper& a, const IntWrapper& b) {
+        return a.num < b.num;
+    }
+};
 
 int main() {
 
 
-    avl_tree<int, std::string> tr;
+    avl_tree<IntWrapper, std::string, comp> tr;
     
-    tr.insert(3, "Roma");
-    tr.insert(18, "Inter");
-    tr.insert(19, "Milan");
-    tr.insert(36, "Juve");
-    tr.insert(9, "Genoa");
-    tr.insert(2, "Fiorentina");
-    tr.insert(2, "Napoli");
-    tr.insert(7, "Bologna");
+    tr.insert(IntWrapper(3), "Roma");
+    tr.insert(IntWrapper(18), "Inter");
+    tr.insert(IntWrapper(19), "Milan");
+    tr.insert(IntWrapper(36), "Juve");
+    tr.insert(IntWrapper(9), "Genoa");
+    tr.insert(IntWrapper(2), "Fiorentina");
+    tr.insert(IntWrapper(2), "Napoli");
+    tr.insert(IntWrapper(7), "Bologna");
     //tr.insert(28, "REal");
 
     std::cout << "unique: " << tr.unique_keys() << '\n';
 
-    /* avl_tree<int, std::string>::iterator it = tr.lower_bound(3);
+    auto it = tr.lower_bound(3);
     auto itup = tr.upper_bound(20);
 
     for (auto iter = itup; iter != it; iter--) {
-        std::cout << iter->second << " : " << iter->first << '\n';
-    } */
+        std::cout << iter->second << " : " << iter->first.num << '\n';
+    }
 
     //tr.erase(2);
     
-    string path = "C:/Users/ildiavolo/Desktop/dev/SD/avl/data";
+    /* string path = "C:/Users/ildiavolo/Desktop/dev/SD/avl/data";
     save_tree_binary(path, tr);
 
 
@@ -175,26 +189,8 @@ int main() {
 
     for (auto iter = toLoad.begin(); iter != toLoad.end(); iter++) {
         std::cout << iter->second << " : " << iter->first << '\n';
-    }
-
-    //std::cout << '\n' << tr.height() << '\n' << tr.size() << '\n';
-
-    /* for (auto it = toLoad.cbegin(); it != toLoad.cend(); ++it) {
-        std::cout << it->second << '\n';
     } */
 
-    /*
-    auto itdown = tr.lower_bound(7), itup = tr.upper_bound(18);
-
-    for (auto it = itdown; it != itup; ++it) {
-        std::cout << it->second << " : " << it->first << '\n';
-    }
-        
-    auto range = tr.equal_range(2);
-
-    for (auto it = range.first; it != range.second; ++it) {
-        std::cout << it->second << ' ';
-    } */
 
 
     return 0;

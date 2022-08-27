@@ -1,13 +1,14 @@
 #ifndef AVL_TREE_HPP
 #define AVL_TREE_HPP
 
-#include <vector>
-#include <exception>
 #include <list>
-
 #include <vector>
 
-#include "type_traits.hpp"
+//#include "type_traits.hpp"
+
+#include <type_traits>
+using std::enable_if;
+using std::is_const;
 
 template <typename Key, typename Value, typename Compare = std::less<Key>>
 class avl_tree {
@@ -58,8 +59,12 @@ public:
     iterator end();
 
     const_iterator find(const Key& key) const;
+
     void insert(const Key& key, const Value& val);
+
     void erase(const Key& key);
+    void erase(iterator position);
+
     std::vector<std::pair<Key, Value>> inorder_traversal() const;
 
     int size() const;
@@ -71,6 +76,7 @@ public:
     const_iterator upper_bound(const Key& key) const;
 
     iterator lower_bound(const Key& key);
+    //
     const_iterator const_lower_bound() const;
     const_iterator lower_bound(const Key& key) const;
 
@@ -107,14 +113,16 @@ private:
 
     node* find_eq_or_greater(node* n, const Key& key) const;
 
+    node* erase_node(node* current);
+
     void destroy(node* n);
 
     bool equal(const Key& a, const Key& b) const;
 
     //template <typename T, typename V>
-    friend node* load_tree_helper(const std::vector<int>& v, int begin, int end, const std::string& path);
+    /* friend node* load_tree_helper(const std::vector<int>& v, int begin, int end, const std::string& path);
     
-    friend void load_tree_binary(const std::string& path, avl_tree<int, std::string>& tr);
+    friend void load_tree_binary(const std::string& path, avl_tree<int, std::string>& tr); */
 };
 
 #include "avl.inl"

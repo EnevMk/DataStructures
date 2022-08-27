@@ -3,7 +3,6 @@
 
 #include "avl.hpp"
 
-
 template<typename ListIterator = list_iterator, typename Type = std::pair<const Key, Value>>
 class base_iterator {
 
@@ -133,6 +132,7 @@ public:
 
     base_iterator& operator--() {
         findPrev();
+        return *this;
     }
 
     base_iterator operator--(int) {
