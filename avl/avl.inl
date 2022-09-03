@@ -236,14 +236,14 @@ typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::era
         delete current;
     }
     else {
-        substitute = extract_minimal_node(current->right, current->parent);
-        substitute->left = current->left;
+        substitute = extract_minimal_node(current, current);
+        /* substitute->left = current->left;
         substitute->right = current->right;
 
         substitute->left->parent = substitute;
         substitute->right->parent = substitute;
         
-        substitute->parent = current->parent;
+        substitute->parent = current->parent; */
         delete current;
     }
     return substitute;
@@ -252,13 +252,23 @@ typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::era
 template <typename Key, typename Value, typename Compare>
 typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::extract_minimal_node(node* startingNode, node* parent) {
 
-    node *current = startingNode;
+    node *current = startingNode->right;
     
     while (current && current->left) {
         //parent = current;
         current = current->left;
     }
-    current->parent->left = current->right;
+    if (current->parent->left == current) {
+        current->parent->left = current->right;
+        
+        current->right = startingNode->right;       
+        current->right->parent = current;        
+    }
+    
+    current->left = startingNode->left;
+    current->left->parent = current;
+
+    current->parent = startingNode->parent;
     //current->parent = parent;
     return current;
 }

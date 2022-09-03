@@ -169,7 +169,7 @@ int main() {
 
     std::cout << "unique: " << tr.unique_keys() << '\n';
 
-    auto iteq = tr.equal_range(&e);
+    auto iteq = tr.equal_range(&b);
 
     for (auto it = iteq.first; it != iteq.second; ++it) {
         
