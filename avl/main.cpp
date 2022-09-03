@@ -145,33 +145,52 @@ public:
 };
 
 struct comp {
-    bool operator() (const IntWrapper& a, const IntWrapper& b) {
-        return a.num < b.num;
+    bool operator() (const int* a, const int* b) {
+        return *a < *b;
     }
 };
 
 int main() {
 
 
-    avl_tree<IntWrapper, std::string, comp> tr;
+    avl_tree<int*, std::string, comp> tr;
+
+    int a = 3, b = 18, c = 19, d = 36, e= 9, f= 2, g = 7;
     
-    tr.insert(IntWrapper(3), "Roma");
-    tr.insert(IntWrapper(18), "Inter");
-    tr.insert(IntWrapper(19), "Milan");
-    tr.insert(IntWrapper(36), "Juve");
-    tr.insert(IntWrapper(9), "Genoa");
-    tr.insert(IntWrapper(2), "Fiorentina");
-    tr.insert(IntWrapper(2), "Napoli");
-    tr.insert(IntWrapper(7), "Bologna");
+    tr.insert(&a, "Roma");
+    tr.insert(&b, "Inter");
+    tr.insert(&c, "Milan");
+    tr.insert(&d, "Juve");
+    tr.insert(&e, "Genoa");
+    tr.insert(&f, "Fiorentina");
+    tr.insert(&f, "Napoli");
+    tr.insert(&g, "Bologna");
     //tr.insert(28, "REal");
 
     std::cout << "unique: " << tr.unique_keys() << '\n';
 
-    auto it = tr.lower_bound(3);
-    auto itup = tr.upper_bound(20);
+    auto iteq = tr.equal_range(&e);
 
-    for (auto iter = itup; iter != it; iter--) {
-        std::cout << iter->second << " : " << iter->first.num << '\n';
+    for (auto it = iteq.first; it != iteq.second; ++it) {
+        
+        //std::cout << it->second << " : " << *it->first<< '\n';
+        //
+        break;
+    }
+
+    //tr.erase(iteq.first);
+    tr.erase(&a);
+
+    auto it = tr.lower_bound(&g);
+    auto itup = tr.upper_bound(&c);
+
+    auto vec = tr.inorder_traversal();
+
+    for (int i = 0; i < vec.size(); ++i) {
+        std::cout << vec[i].second << ' ';
+    }
+    for (auto iter = tr.cbegin(); iter != tr.cend(); iter++) {
+        std::cout << iter->second << " : " <<  '\n';
     }
 
     //tr.erase(2);

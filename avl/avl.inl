@@ -58,7 +58,20 @@ void avl_tree<Key, Value, Compare>::erase(iterator position) {
     position.current->container.erase(position.element);
 
     if (position.current->container.size() == 0) {
-        erase_node(position.current);
+        node* p = position.current->parent;
+        if (p && p->right == position.current) {
+            std::cout << "right\n";
+            p->right = erase_node(p->right);
+        } else if (p && p->left == position.current) {
+            std::cout << "left\n";
+            p->left = erase_node(p->left);
+        }
+
+        else {
+            std::cout << "no\n";
+            position.current = erase_node(position.current);
+        }
+
     }
 }
 
@@ -192,7 +205,7 @@ typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::era
     else if (Compare()(current->getKey(), key)) current->right = erase(current->right, key);
 
     else {
-        erase_node(current);
+        current = erase_node(current);
     }
 
     current->height = std::max(height(current->left), height(current->right)) + 1;
@@ -207,7 +220,6 @@ typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::era
     this->nodes -= 1;
 
     node* substitute;
-    substitute->parent = current->parent;
 
     if (!current->left && !current->right) {
         delete current;
@@ -215,16 +227,23 @@ typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::era
     }
     else if (!current->left) {
         substitute = current->right;
+        current->right->parent = current->parent;
         delete current;
     }
     else if (!current->right) {
         substitute = current->left;
+        current->left->parent = current->parent;
         delete current;
     }
     else {
-        substitute = extract_minimal_node(current->right, current);
+        substitute = extract_minimal_node(current->right, current->parent);
         substitute->left = current->left;
         substitute->right = current->right;
+
+        substitute->left->parent = substitute;
+        substitute->right->parent = substitute;
+        
+        substitute->parent = current->parent;
         delete current;
     }
     return substitute;
@@ -236,10 +255,11 @@ typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::ext
     node *current = startingNode;
     
     while (current && current->left) {
-        parent = current;
+        //parent = current;
         current = current->left;
     }
-    parent->left = current->right;
+    current->parent->left = current->right;
+    //current->parent = parent;
     return current;
 }
 
@@ -275,7 +295,6 @@ typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::rig
 
 template <typename Key, typename Value, typename Compare>
 typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::left_rotation(node* n) {
-    
     auto new_root = n->right;
     auto left_subtree = new_root->left;
 
@@ -341,7 +360,7 @@ avl_tree<Key, Value, Compare>::equal_range(const Key& key) {
 
     auto node = find(root, key);
 
-    if (node) {
+    if (node && equal(node->getKey(), key)) {
         auto first = iterator(node, node->container.begin());
         auto second = iterator(node, (--node->container.end()));
 
@@ -349,15 +368,15 @@ avl_tree<Key, Value, Compare>::equal_range(const Key& key) {
         return std::make_pair(first, second);
     }
 
-    else { return std::make_pair(end(), end()); }
+    else { return std::make_pair(iterator(node), iterator(node)); }
 }
 
 template <typename Key, typename Value, typename Compare>
 std::pair<typename avl_tree<Key, Value, Compare>::const_iterator, typename avl_tree<Key, Value, Compare>::const_iterator>
 avl_tree<Key, Value, Compare>::equal_range(const Key& key) const {
-    auto node = find(root, key);
+    auto node = find_eq_or_greater(root, key);
 
-    if (node) {
+    if (node && equal(node->getKey(), key)) {
         auto first = const_iterator(node, node->container.begin());
         auto second = const_iterator(node, (--node->container.end()));
 
@@ -365,7 +384,7 @@ avl_tree<Key, Value, Compare>::equal_range(const Key& key) const {
         return std::make_pair(first, second);
     }
 
-    else { return std::make_pair(end(), end()); }
+    else { return std::make_pair(const_iterator(node), const_iterator(node)); }
 }
 
 template <typename Key, typename Value, typename Compare>
@@ -373,10 +392,13 @@ typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::fin
 
     if (!n) return nullptr;
 
-    else if (/* n->getKey() >= key */Compare()(key, n->getKey()) || equal(key, n->getKey())) {
+    else if (/* n->getKey() > key */Compare()(key, n->getKey())) {
         auto node = find_eq_or_greater(n->left, key);
 
         return (node) ? node : n;
+    }
+    else if (equal(key, n->getKey())) {
+        return n;
     }
 
     else { return find_eq_or_greater(n->right, key); }
