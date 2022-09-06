@@ -59,6 +59,7 @@ public:
     iterator end();
 
     const_iterator find(const Key& key) const;
+    iterator find(const Key& key);
 
     void insert(const Key& key, const Value& val);
 
@@ -86,9 +87,9 @@ public:
 
     ~avl_tree();
 
-    
+    int balance_factor(iterator it) const;
 private:
-
+public:
     int height(const node* n) const;
 
     int balance_factor(const node* n) const;

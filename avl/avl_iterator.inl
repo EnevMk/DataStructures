@@ -7,7 +7,7 @@ template<typename ListIterator = list_iterator, typename Type = std::pair<const 
 class base_iterator {
 
 private:
-
+public:
     ListIterator element;
 
     node* current;

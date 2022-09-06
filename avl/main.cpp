@@ -139,9 +139,9 @@ std::vector<int> load_sorted_arr(const string& path) {
 class IntWrapper {
 
 public:
-    int num;
+    int num{};
 
-    IntWrapper(int n) : num(n) {}
+    //IntWrapper(int n) : num(n) {}
 };
 
 struct comp {
@@ -153,47 +153,44 @@ struct comp {
 int main() {
 
 
-    avl_tree<int*, std::string, comp> tr;
+    avl_tree<int, std::string> tr;
 
     int a = 3, b = 18, c = 19, d = 36, e= 9, f= 2, g = 7;
     
-    tr.insert(&a, "Roma");
-    tr.insert(&b, "Inter");
-    tr.insert(&c, "Milan");
-    tr.insert(&d, "Juve");
-    tr.insert(&e, "Genoa");
-    tr.insert(&f, "Fiorentina");
-    tr.insert(&f, "Napoli");
-    tr.insert(&g, "Bologna");
+    tr.insert(12, "Conor");
+    tr.insert(33, "Showtime");
+    tr.insert(1, "Covington");
+    tr.insert(10, "Adesanya");
+    tr.insert(15, "Mghty mouse");
+    tr.insert(2, "Dillashaw");
+    tr.insert(90, "DO Bronx");
+    tr.insert(87, "Poirier");
+    tr.insert(88, "Oretge");
+    tr.insert(11, "Aspinall");
+    tr.insert(24, "Paddy");
+
     //tr.insert(28, "REal");
 
     std::cout << "unique: " << tr.unique_keys() << '\n';
+    std::cout << tr.find(33).current->right->container.front().first;
+    auto iteq = tr.equal_range(24);
+    
+    tr.erase(iteq.first);
+    auto bronx = tr.find(15);
+    tr.erase(bronx);
 
-    auto iteq = tr.equal_range(&b);
-
-    for (auto it = iteq.first; it != iteq.second; ++it) {
-        
-        //std::cout << it->second << " : " << *it->first<< '\n';
-        //
-        break;
-    }
-
-    //tr.erase(iteq.first);
-    tr.erase(&a);
-
-    auto it = tr.lower_bound(&g);
-    auto itup = tr.upper_bound(&c);
-
-    auto vec = tr.inorder_traversal();
-
-    for (int i = 0; i < vec.size(); ++i) {
-        std::cout << vec[i].second << ' ';
-    }
+    int i = 0;
     for (auto iter = tr.cbegin(); iter != tr.cend(); iter++) {
-        std::cout << iter->second << " : " <<  '\n';
+        i++;
+        if (i == 25) break;
+        std::cout << iter->second << " : " <<  iter->first << '\n';
     }
 
+    auto one = tr.find(12);
+    std::cout << tr.balance_factor(one);
     //tr.erase(2);
+
+    //std::cout << ' ' << (one.current->right->right->right->container.front().first);
     
     /* string path = "C:/Users/ildiavolo/Desktop/dev/SD/avl/data";
     save_tree_binary(path, tr);
