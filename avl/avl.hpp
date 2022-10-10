@@ -13,19 +13,19 @@ using std::is_const;
 template <typename Key, typename Value, typename Compare = std::less<Key>>
 class avl_tree {
 
-private:
+public:
 
     struct node {
         typedef std::list<std::pair<const Key, Value>> value_type;
         
         value_type container;
 
-        node *parent;
+        //node *parent;
 
         node *left{};
         node *right{};
         
-        int height{};
+        //int height{};
 
         Key getKey() const {
             return container.front().first;
@@ -38,42 +38,55 @@ public:
 
     avl_tree();
     //avl_tree(const std::list<std::pair<const Key, Value>> val);
+
+    avl_tree(const avl_tree&) = delete;
+    avl_tree& operator=(const avl_tree&) = delete;
     int height() const;
+    size_t rec_height(const node* n) const;
     
 public:
     
-    typedef typename std::list<std::pair<const Key, Value>>::iterator list_iterator;
-    typedef typename std::list<std::pair<const Key, Value>>::const_iterator const_list_iterator;
+    /* typedef typename std::list<std::pair<const Key, Value>>::iterator list_iterator;
+    typedef typename std::list<std::pair<const Key, Value>>::const_iterator const_list_iterator; */
 
-    #include "avl_iterator.inl"
+    //#include "avl_iterator.inl"
 
-    typedef base_iterator<list_iterator, std::pair<const Key, Value>> iterator;
-    typedef base_iterator<const_list_iterator, const std::pair<const Key, Value>> const_iterator;
+    /* typedef base_iterator<list_iterator, std::pair<const Key, Value>> iterator;
+    typedef base_iterator<const_list_iterator, const std::pair<const Key, Value>> const_iterator; */
 
-    const_iterator cbegin() const;
+    /* const_iterator cbegin() const;
     const_iterator begin() const;
     iterator begin();
 
     const_iterator cend() const;
     const_iterator end() const;
-    iterator end();
+    iterator end(); */
 
-    const_iterator find(const Key& key) const;
-    iterator find(const Key& key);
+    /* const_iterator find(const Key& key) const;
+    iterator find(const Key& key); */
+    node* mask(node*, short balance);
+    node* unmask(node*) const;
+    bool is_left_heavy(node*);
+    bool is_right_heavy(node*);
+
+    void fix_left_heavy(node*&);
+    void fix_right_heavy(node*&);
+
+    const node* const find(const Key& key) const;
 
     void insert(const Key& key, const Value& val);
 
     void erase(const Key& key);
-    void erase(iterator position);
+    //void erase(iterator position);
 
     std::vector<std::pair<Key, Value>> inorder_traversal() const;
 
     int size() const;
     int count(const Key& k) const;
-    int count(const_iterator it) const;
+    //int count(const_iterator it) const;
     int unique_keys() const;
 
-    iterator upper_bound(const Key& key);
+    /* iterator upper_bound(const Key& key);
     const_iterator upper_bound(const Key& key) const;
 
     iterator lower_bound(const Key& key);
@@ -82,12 +95,12 @@ public:
     const_iterator lower_bound(const Key& key) const;
 
     std::pair<iterator, iterator> equal_range(const Key& key);
-    std::pair<const_iterator, const_iterator> equal_range(const Key& key) const;
+    std::pair<const_iterator, const_iterator> equal_range(const Key& key) const; */
 
 
     ~avl_tree();
 
-    int balance_factor(iterator it) const;
+    //int balance_factor(iterator it) const;
 private:
 public:
     int height(const node* n) const;
@@ -100,11 +113,15 @@ public:
 
     node* find(node* current, const Key& key) const;
 
-    node* insert(node* current, const Key& key, const Value& val, node* parent);
+    node* /* void  */insert(node* current, const Key& key, const Value& val, bool &shouldRebalance);
 
-    node* erase(node* current, const Key& key);
+    void ensureLeftBalance(node*& current, bool &shouldRebalance);
+    void ensureRightBalance(node*& current, bool &shouldRebalance);
+    void insert_node(node* toInsert, node** parent, bool left);
 
-    node* extract_minimal_node(node* startingNode, node* parent);
+    node* erase(node* current, const Key& key, bool &shouldRebalance);
+
+    node* extract_minimal_node(node* parent, node* childNode, node* startingNode, bool &updateBalance);
 
     node* find_minimal_node(node* startingNode) const;
 
