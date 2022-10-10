@@ -198,9 +198,9 @@ void avl_tree<Key, Value, Compare>::fix_right_heavy(node*& startingNode) {
 
     if (balance_right > 0) {
         size_t oldRootBalanceFactor = 0, pivotBalanceFactor = 0;
-
-        if ((unmask(right->left))->right) oldRootBalanceFactor = -1; 
-        else if ((unmask(right->left))->right) pivotBalanceFactor = 1;
+        std::cout << "arajano\n";
+        if ((unmask(right->left))->right) oldRootBalanceFactor = 1; 
+        else if ((unmask(right->left))->left) pivotBalanceFactor = -1;
 
         start->right = right_rotation(right);
         startingNode = left_rotation(start);

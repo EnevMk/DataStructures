@@ -14,15 +14,17 @@ int main() {
     calcio.insert(7, "Bologna");
     calcio.insert(3, "Roma");
     calcio.insert(9, "Genoa");
-    calcio.insert(10, "Napoli");
-
+    calcio.insert(11, "Napoli");
+    calcio.insert(10, "Udinese");
+    std::cout << "----\n";
     calcio.erase(3);
-    calcio.erase(7);
-    calcio.erase(10);
+    //calcio.erase(7);
+    //calcio.erase(10);
     
     //calcio.insert(2, "Napoli");
     //std::cout << reinterpret_cast<uintptr_t>(nullptr);
-    std::cout << calcio.balance_factor(calcio.find(9)) << '\n';
+    std::cout << calcio.unmask(calcio.unmask(calcio.unmask(calcio.root)->left)->right)->container.front().second << '\n';
+    std::cout << calcio.balance_factor(calcio.find(19)) << '\n';
     //std::cout << calcio.unmask(calcio.root)->container.front().second << '\n';
     //std::cout << calcio.unmask(calcio.unmask(calcio.root)->left)->container.front().second << '\n';
     /* std::cout << sizeof(int)<< '\n';
