@@ -3,22 +3,25 @@
 
 #include <list>
 #include <vector>
+#include <stack>
 
 //#include "type_traits.hpp"
 
 #include <type_traits>
 using std::enable_if;
 using std::is_const;
+using std::stack;
 
 template <typename Key, typename Value, typename Compare = std::less<Key>>
 class avl_tree {
 
-public:
+private:
+
+    typedef std::pair<const Key, Value> value_type;
 
     struct node {
-        typedef std::list<std::pair<const Key, Value>> value_type;
-        
-        value_type container;
+
+        std::list<value_type> container;
 
         //node *parent;
 
@@ -46,26 +49,26 @@ public:
     
 public:
     
-    /* typedef typename std::list<std::pair<const Key, Value>>::iterator list_iterator;
-    typedef typename std::list<std::pair<const Key, Value>>::const_iterator const_list_iterator; */
+    typedef typename std::list<value_type>::iterator list_iterator;
+    typedef typename std::list<value_type>::const_iterator const_list_iterator;
 
-    //#include "avl_iterator.inl"
+    #include "avl_iterator.inl"
 
-    /* typedef base_iterator<list_iterator, std::pair<const Key, Value>> iterator;
-    typedef base_iterator<const_list_iterator, const std::pair<const Key, Value>> const_iterator; */
+    typedef base_iterator<list_iterator, value_type> iterator;
+    typedef base_iterator<const_list_iterator, const value_type> const_iterator;
 
-    /* const_iterator cbegin() const;
+    const_iterator cbegin() const;
     const_iterator begin() const;
     iterator begin();
 
     const_iterator cend() const;
     const_iterator end() const;
-    iterator end(); */
+    iterator end();
 
     /* const_iterator find(const Key& key) const;
     iterator find(const Key& key); */
-    node* mask(node*, short balance);
-    node* unmask(node*) const;
+    static node* mask(node*, short balance);
+    static node* unmask(node*);
     bool is_left_heavy(node*);
     bool is_right_heavy(node*);
 
@@ -102,7 +105,6 @@ public:
 
     //int balance_factor(iterator it) const;
 private:
-public:
     int height(const node* n) const;
 
     int balance_factor(const node* n) const;
@@ -136,6 +138,8 @@ public:
     void destroy(node* n);
 
     bool equal(const Key& a, const Key& b) const;
+
+    node* find_rightmost(node* n) const;
 
     //template <typename T, typename V>
     /* friend node* load_tree_helper(const std::vector<int>& v, int begin, int end, const std::string& path);

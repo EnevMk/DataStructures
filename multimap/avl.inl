@@ -400,7 +400,7 @@ template <typename Key, typename Value, typename Compare>
 std::pair<typename avl_tree<Key, Value, Compare>::iterator, typename avl_tree<Key, Value, Compare>::iterator>
 avl_tree<Key, Value, Compare>::equal_range(const Key& key) {
 
-    auto node = find(root, key);
+    auto node = find_eq_or_greater(root, key);
 
     if (node && equal(node->getKey(), key)) {
         auto first = iterator(node, node->container.begin());

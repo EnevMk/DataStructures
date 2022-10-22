@@ -25,23 +25,22 @@ struct comp {
 int main() {
 
 
-    avl_tree<int, std::string> tr;
+    avl_tree<std::string, int> tr;
 
-    int a = 3, b = 18, c = 19, d = 36, e= 9, f= 2, g = 7;
-    
-    tr.insert(12, "Conor");
-    tr.insert(33, "Showtime");
-    tr.insert(1, "Covington");
-    tr.insert(10, "Adesanya");
-    tr.insert(15, "Mghty mouse");
-    tr.insert(2, "Dillashaw");
-    tr.insert(90, "DO Bronx");
-    tr.insert(87, "Poirier");
-    tr.insert(88, "Oretge");
-    tr.insert(11, "Aspinall");
-    tr.insert(24, "Paddy");
+    tr.insert("Banana", 1);
+    tr.insert("Lemon", 1);
+    tr.insert("Pineapple", 1);
+    tr.insert("Tomato", 1);
+    tr.insert("StrawBerry", 1);
 
-    //tr.insert(28, "REal");
+    auto pairIt = tr.equal_range("Cucumber");
+
+    for (auto it = pairIt.first; it != tr.cend(); ++it) {
+        std::cout << it->first << ' ';
+        
+    }    
+    //std::cout << (++pairIt.first)->first;
+    /* //tr.insert(28, "REal");
 
     std::cout << "unique: " << tr.unique_keys() << '\n';
     std::cout << tr.find(33).current->right->container.front().first;
@@ -59,7 +58,7 @@ int main() {
     }
 
     auto one = tr.find(12);
-    std::cout << tr.balance_factor(one);
+    std::cout << tr.balance_factor(one); */
 
     return 0;
 }

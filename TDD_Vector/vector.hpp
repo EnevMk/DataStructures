@@ -106,7 +106,7 @@ public:
 	}
 
 	vector(const vector<T> &obj) {
-
+		std::cout << "copy vecrtorr\n";
 		if (obj.data != nullptr) {
 			data = NEW(T, obj.count);
 			cap = obj.count;
@@ -124,8 +124,13 @@ public:
 		
 	}
 
+	vector(vector<T>&& obj) : data(obj.data), cap(obj.cap), count(obj.count) {
+		obj.data = nullptr;
+		std::cout << "mouve vector\n";
+	}
+
 	vector& operator=(const vector<T> &obj) {
-		
+		std::cout << "copy oper= vecrtorr\n";
 		if (this != &obj) {
 
 			if (this->cap < obj.count) {
@@ -154,8 +159,19 @@ public:
 				count = obj.count;
 			}
 		}
-		
+		return *this;
+	}
 
+	vector& operator=(vector<T> &&obj) {
+		std::cout << "move oper= vectorr\n";
+		if (this != &obj) {
+			this->data = obj.data;
+			this->count = obj.count;
+			this->cap = 0;
+
+			obj.count = 0;
+			obj.data = nullptr;
+		}
 
 		return *this;
 	}
@@ -253,6 +269,12 @@ public:
 	}
 
 	T& operator[](const int index) {
+		
+
+		return this->data[index];
+	}
+
+	const T& operator[](const int index) const {
 		
 
 		return this->data[index];

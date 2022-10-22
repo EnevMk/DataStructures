@@ -15,41 +15,27 @@ int main() {
     calcio.insert(3, "Roma");
     calcio.insert(9, "Genoa");
     calcio.insert(11, "Napoli");
-    calcio.insert(10, "Udinese");
+    calcio.insert(14, "Udinese");
     std::cout << "----\n";
     calcio.erase(3);
     //calcio.erase(7);
     //calcio.erase(10);
     
-    //calcio.insert(2, "Napoli");
-    //std::cout << reinterpret_cast<uintptr_t>(nullptr);
-    std::cout << calcio.unmask(calcio.unmask(calcio.unmask(calcio.root)->left)->right)->container.front().second << '\n';
-    std::cout << calcio.balance_factor(calcio.find(19)) << '\n';
-    //std::cout << calcio.unmask(calcio.root)->container.front().second << '\n';
-    //std::cout << calcio.unmask(calcio.unmask(calcio.root)->left)->container.front().second << '\n';
-    /* std::cout << sizeof(int)<< '\n';
+    std::cout << calcio.find(9)->container.front().second << '\n';
+    std::cout << calcio.count(19) << '\n';
 
+    auto v = calcio.inorder_traversal();
 
-    int p = 619;
-    avl_tree<int, string>::node *pp = new avl_tree<int, string>::node{ std::list<pair<const int, string>>(1, std::make_pair(7, "Genoa")) };
-    std::cout << pp << '\n';
-    uintptr_t cpp = reinterpret_cast<uintptr_t>(pp);
-    std::cout << cpp << '\n';
-    cpp |= 1;
-    pp = reinterpret_cast<avl_tree<int, string>::node*>(cpp);
+    /* for (auto &team: v) {
+
+        std::cout << team.second << '\n';
+    } */
     
-    std::cout << pp << '\n';
-    std::cout << cpp << '\n';
-    //cpp |= 3;
-    std::cout << uintptr_t(cpp & 3) << '\n';
-    //std::cout << cpp << '\n';
-    
-    pp = reinterpret_cast<avl_tree<int, string>::node*> (cpp &~ 3);
-    std::cout << pp << '\n';
-    delete pp; */
-    
-    /* calcio.insert(7, "Sampodoria");
-    calcio.insert(0, "Salernitana"); */
-    //calcio.erase("Milan");
-    //std::cout << (calcio.find("Milan") != nullptr) << '\n';
+    for (auto it = calcio.begin(); it != calcio.end(); ++it) {
+        
+        std::cout << it->second << ' ';
+    }
+    /* auto it = calcio.begin();
+    std::cout << (++++++++++++++it != calcio.end());
+    std::cout << it->second; */
 }
