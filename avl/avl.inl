@@ -10,7 +10,7 @@ avl_tree<Key, Value, Compare>::avl_tree() {}
 
 template <typename Key, typename Value, typename Compare>
 typename avl_tree<Key, Value, Compare>::node* 
-avl_tree<Key, Value, Compare>::mask(node* n, short balance) {
+avl_tree<Key, Value, Compare>::mask(const node* n, short balance) {
     uintptr_t nn = reinterpret_cast<uintptr_t>(n);
     nn |= (balance + 1);
     return reinterpret_cast<node*>(nn);
@@ -18,7 +18,7 @@ avl_tree<Key, Value, Compare>::mask(node* n, short balance) {
 
 template <typename Key, typename Value, typename Compare>
 typename avl_tree<Key, Value, Compare>::node* 
-avl_tree<Key, Value, Compare>::unmask(node* n) {
+avl_tree<Key, Value, Compare>::unmask(const node* n) {
     uintptr_t nn = reinterpret_cast<uintptr_t>(n);
     nn &= ~3;
     return reinterpret_cast<node*>(nn);
@@ -132,7 +132,7 @@ avl_tree<Key, Value, Compare>::find(node* current, const Key& key) const {
     else if (Compare()(key, unmasked->getKey()))/* key < current->getKey() */ return find(unmasked->left, key);
     else if (Compare()(unmasked->getKey(), key)) return find(unmasked->right, key);
 
-    else { return unmasked/* current */; }
+    else { return/*  unmasked */current; }
 }
 template <typename Key, typename Value, typename Compare>
 void avl_tree<Key, Value, Compare>::fix_left_heavy(node*& startingNode) {
@@ -174,6 +174,8 @@ void avl_tree<Key, Value, Compare>::fix_right_heavy(node*& startingNode) {
         start->right = right_rotation(right);
         startingNode = left_rotation(start);
 
+        std::cout << oldRootBalanceFactor << " " << pivotBalanceFactor << '\n';
+
         startingNode->left = mask(startingNode->left, oldRootBalanceFactor);
         startingNode->right = mask(startingNode->right, pivotBalanceFactor);
         startingNode = mask(startingNode, 0);
@@ -191,6 +193,7 @@ void avl_tree<Key, Value, Compare>::ensureLeftBalance(node*& current, bool &shou
 
     if (shouldRebalance && is_left_heavy(current)) {
         fix_left_heavy(current); // rebalance
+        shouldRebalance = 0;
     }
 
     else if (shouldRebalance && is_right_heavy(current)) {
@@ -207,6 +210,7 @@ void avl_tree<Key, Value, Compare>::ensureRightBalance(node*& current, bool &sho
     //if (!shouldRebalance) return current;
     if (shouldRebalance && is_right_heavy(current)) {
         fix_right_heavy(current); // update balance factor
+        shouldRebalance = 0;
     }
     
     else if (shouldRebalance && is_left_heavy(current)) {
@@ -242,86 +246,127 @@ avl_tree<Key, Value, Compare>::insert(node* current, const Key& key, const Value
     return current;
 }
 
+template <typename Key, typename Value, typename Compare>
+void avl_tree<Key, Value, Compare>::ensureLeftBalanceErase(node*& current, bool &shouldRebalance) {
+
+    node* unmasked = unmask(current);
+
+    if (shouldRebalance && is_right_heavy(current)) {
+        fix_right_heavy(current);
+    }
+    else if (shouldRebalance && is_left_heavy(current)) {
+        current = mask(unmasked, 0);
+    }
+    else if (shouldRebalance) {
+        current = mask(unmasked, -1);
+        shouldRebalance = 0;
+    }
+}
+
+template <typename Key, typename Value, typename Compare>
+void avl_tree<Key, Value, Compare>::ensureRightBalanceErase(node*& current, bool &shouldRebalance) {
+    node *unmasked = unmask(current);
+    //removed from shorter subtree, should rebalance
+    if (shouldRebalance && is_left_heavy(current)) {
+        fix_left_heavy(current);
+    }
+    // removed from taller subtree, balance is now even
+    else if (shouldRebalance && is_right_heavy(current)) {
+        current = mask(unmasked, 0);
+    }
+    // update balance factor, left subtree is now taller
+    // stop BF updating, as there are no height changes in upper nodes
+    else if (shouldRebalance) {
+        current = mask(unmasked, 1);
+        shouldRebalance = 0;
+    }
+}
 
 template <typename Key, typename Value, typename Compare>
 typename avl_tree<Key, Value, Compare>::node* 
 avl_tree<Key, Value, Compare>::erase(node* current, const Key& key, bool &shouldRebalance) {
+    std::cout << "oopa\n";
     node* unmasked = unmask(current);
     if (!current) return nullptr;
 
     if (Compare()(key, unmasked->getKey())) {
         unmasked->left = erase(unmasked->left, key, shouldRebalance);
 
-        if (shouldRebalance && is_right_heavy(current)) fix_right_heavy(current);
+        ensureLeftBalanceErase(current, shouldRebalance);
+        /* if (shouldRebalance && is_right_heavy(current)) fix_right_heavy(current);
         else if (shouldRebalance && is_left_heavy(current)) current = mask(unmasked, 0);
-        else if (shouldRebalance) { current = mask(unmasked, -1); }
+        else if (shouldRebalance) { current = mask(unmasked, -1); } */
     }
     else if (Compare()(unmasked->getKey(), key)) {
         unmasked->right = erase(unmasked->right, key, shouldRebalance);
         //removed from shorter subtree, should rebalance
-        if (shouldRebalance && is_left_heavy(current)) fix_left_heavy(current);
-        // removed from taller subtree, balance is now even
-        else if (shouldRebalance && is_right_heavy(current)) current = mask(unmasked, 0); 
-        else if (shouldRebalance) { current = mask(unmasked, 1); } // update balance factor, left subtree is now taller
+        ensureRightBalanceErase(current, shouldRebalance);
     }
 
     else {
-        current = erase_node(unmasked);
+        current = erase_node(current);
     }
     return current;
 }
 
 template <typename Key, typename Value, typename Compare>
 typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::erase_node(node* current) {
-
-    node* substitute;
     
-    if (!current->left && !current->right) {
-        delete current;
+    node* substitute;
+    node* unmasked = unmask(current);
+
+    this->elems_count -= unmasked->container.size();
+    this->nodes -= 1;
+    
+    if (!unmasked->left && !unmasked->right) {
+        delete unmasked;
         substitute = nullptr;
     }
-    else if (!current->left) {
-        substitute = current->right;
-        delete current;
+    else if (!unmasked->left) {
+        substitute = unmasked->right;
+        delete unmasked;
     }
-    else if (!current->right) {
-        substitute = current->left;
-        delete current;
+    else if (!unmasked->right) {
+        substitute = unmasked->left;
+        delete unmasked;
     }
     else {
-        node* unmasked = unmask(current);
-
+        
         bool shouldUpdateBalanceFactors = 1;
-        substitute = extract_minimal_node(unmasked, unmasked->right, unmasked, shouldUpdateBalanceFactors);
+        node* min = find_minimal_node(unmask(unmasked->right));
+
+        substitute = new node { min->container };
+        root = erase(root, min->getKey(), shouldUpdateBalanceFactors);
+        
+        substitute->right = unmasked->right, substitute->left = unmasked->left;
+        substitute = mask(substitute, balance_factor(current));
+        delete unmasked;
     }
-
-    this->elems_count -= current->container.size();
-    this->nodes -= 1;
-
     return substitute;
 }
 
 template <typename Key, typename Value, typename Compare>
 typename avl_tree<Key, Value, Compare>::node* 
 avl_tree<Key, Value, Compare>::extract_minimal_node(node* parent, node* childNode, node* startingNode, bool &updateBalance) {
-
     node* sub;
     node* unmasked = unmask(childNode);
 
-    bool shouldExtract = !childNode->left;
+    bool shouldExtract = !unmasked->left;
 
     if (!shouldExtract) {
         unmasked->left = extract_minimal_node(unmasked, unmasked->left, startingNode, updateBalance);
-
-        ensureRightBalance(childNode, updateBalance);
+        
+        if (is_right_heavy(childNode)) fix_right_heavy(childNode);
+        else if (is_left_heavy(childNode)) childNode = mask(unmasked, 0);
+        else { childNode = mask(unmasked, -1); }
     }
 
     else if (shouldExtract && parent->left == childNode) {
+        std::cout << unmasked->getKey() << '\n';
         parent->left = unmasked->right;
         unmasked->right = startingNode->right;
     }
-    else if (shouldExtract) unmasked->left = startingNode->left;
-
+    unmasked->left = startingNode->left;
     return childNode;
 }
 
@@ -330,7 +375,8 @@ typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::fin
     node* current = startingNode;
 
     while (current && current->left) {
-        current = current->left;
+        current = unmask(current->left);
+
     }
     return current;
 }
@@ -376,6 +422,7 @@ void avl_tree<Key, Value, Compare>::destroy(node* n) {
 template <typename Key, typename Value, typename Compare>
 typename avl_tree<Key, Value, Compare>::node* avl_tree<Key, Value, Compare>::find_eq_or_greater(node* n, const Key& key) const {
 
+    n = unmask(n);
     if (!n) return nullptr;
 
     else if (/* n->getKey() > key */Compare()(key, n->getKey())) {
@@ -407,11 +454,19 @@ avl_tree<Key, Value, Compare>::find_rightmost(node* n) const {
 }
 
 
-/* const_iterator cbegin() const;
-const_iterator begin() const; */
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator 
+avl_tree<Key, Value, Compare>::cbegin() const {
+    return const_iterator(unmask(root));
+}
 
 template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator 
+avl_tree<Key, Value, Compare>::begin() const {
+    return cbegin();
+}
 
+template <typename Key, typename Value, typename Compare>
 typename avl_tree<Key, Value, Compare>::iterator 
 avl_tree<Key, Value, Compare>::begin() {
 
@@ -426,9 +481,110 @@ avl_tree<Key, Value, Compare>::end() {
 }
 
 
-/* const_iterator cend() const;
-const_iterator end() const;
-iterator end(); */
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator 
+avl_tree<Key, Value, Compare>::cend() const {
+    node* r = find_rightmost(unmask(root));
+    return const_iterator(r, r->container.end());
+}
+
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator 
+avl_tree<Key, Value, Compare>::end() const {
+    return cend();
+}
+
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator avl_tree<Key, Value, Compare>::lower_bound(const Key& key) const {
+    auto node = find_eq_or_greater(root, key);
+
+    if (!node) return end();
+    
+    return const_iterator(node, node->container.begin());
+}
+
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::const_iterator avl_tree<Key, Value, Compare>::upper_bound(const Key& key) const {
+    auto node = find_eq_or_greater(root, key);
+
+    if (!node) return end();
+
+    if (node && equal(key, node->getKey())) {
+        const_iterator toReturn = const_iterator(node);
+        
+        while (equal(toReturn->first, key)) ++toReturn;
+        return toReturn;
+    }
+
+    return const_iterator(node, node->container.begin());
+}
+
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::iterator avl_tree<Key, Value, Compare>::lower_bound(const Key& key) {
+    
+    auto node = find_eq_or_greater(root, key);
+    if (!node) return end();
+    
+    return iterator(node, node->container.begin());
+}
+
+template <typename Key, typename Value, typename Compare>
+typename avl_tree<Key, Value, Compare>::iterator avl_tree<Key, Value, Compare>::upper_bound(const Key& key) {
+    auto node = find_eq_or_greater(root, key);
+
+    if (!node) return end();
+
+    if (node && equal(key, node->getKey())) {
+        iterator toReturn = iterator(node);
+        
+        while (equal(toReturn->first, key)) ++toReturn;
+        return toReturn;
+    }
+
+    return iterator(node, node->container.begin());
+}
+
+
+template <typename Key, typename Value, typename Compare>
+std::pair<typename avl_tree<Key, Value, Compare>::const_iterator, 
+          typename avl_tree<Key, Value, Compare>::const_iterator> 
+          
+avl_tree<Key, Value, Compare>::equal_range(const Key& key) const {
+    auto node = find_eq_or_greater(root, key);
+
+    if (!node) return std::make_pair(end(), end());
+
+    if (node && equal(node->getKey(), key)) {
+        auto first = const_iterator(node, node->container.begin());
+        auto second = const_iterator(node, (--node->container.end()));
+
+        ++second;
+        return std::make_pair(first, second);
+    }
+
+    else { return std::make_pair(const_iterator(node), const_iterator(node)); }
+}
+
+
+template <typename Key, typename Value, typename Compare>
+std::pair<typename avl_tree<Key, Value, Compare>::iterator, 
+          typename avl_tree<Key, Value, Compare>::iterator>  
+
+avl_tree<Key, Value, Compare>::equal_range(const Key& key) {
+    auto node = find_eq_or_greater(root, key);
+
+    if (!node) return std::make_pair(end(), end());
+
+    if (node && equal(node->getKey(), key)) {
+        auto first = iterator(node, node->container.begin());
+        auto second = iterator(node, (--node->container.end()));
+
+        ++second;
+        return std::make_pair(first, second);
+    }
+
+    else { return std::make_pair(iterator(node), iterator(node)); }
+}
 
 #endif
 

@@ -14,7 +14,8 @@ private:
     ListIterator element;
 
     node* getLeftMost(node* n) {
-        
+        n = unmask(n);
+
         while (n && n->left) {
             stack.push(n);
             n = unmask(n->left);
@@ -29,7 +30,7 @@ private:
 
         if (element == current->container.end()) {
             if (current->right) {
-                current = getLeftMost(unmask(current->right));
+                current = getLeftMost(current->right);
             } 
             else if (stack.empty()) {
                 return; 
@@ -71,6 +72,21 @@ public:
     template <typename Q = Type>
     typename enable_if<!is_const<Q>::value, Q>::type * operator->() {
         return &reinterpret_cast<std::pair<const Key, Value>&>(*element);
+    }
+
+    template <typename Q = Type>
+    typename enable_if<is_const<Q>::value, Q>::type * operator->() const {
+        return &*element;
+    }
+
+    template <typename Q = Type>
+    typename enable_if<is_const<Q>::value, Q>::type & operator*() const {
+        return *element;
+    }
+
+    template <typename Q = Type>
+    typename enable_if<!is_const<Q>::value, Q>::type & operator*() {
+        return reinterpret_cast<std::pair<const Key, Value>&>(*element);
     }
 
     template <typename ListIter = ListIterator, typename T = value_type>

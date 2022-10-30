@@ -16,6 +16,7 @@ template <typename Key, typename Value, typename Compare = std::less<Key>>
 class avl_tree {
 
 private:
+//public:
 
     typedef std::pair<const Key, Value> value_type;
 
@@ -65,16 +66,17 @@ public:
     const_iterator end() const;
     iterator end();
 
+    const_iterator lower_bound(const Key& key) const;
+    const_iterator upper_bound(const Key& key) const;
+
+    iterator lower_bound(const Key& key);
+    iterator upper_bound(const Key& key);
+
+    std::pair<const_iterator, const_iterator> equal_range(const Key& key) const;
+    std::pair<iterator, iterator> equal_range(const Key& key);
     /* const_iterator find(const Key& key) const;
     iterator find(const Key& key); */
-    static node* mask(node*, short balance);
-    static node* unmask(node*);
-    bool is_left_heavy(node*);
-    bool is_right_heavy(node*);
-
-    void fix_left_heavy(node*&);
-    void fix_right_heavy(node*&);
-
+    
     const node* const find(const Key& key) const;
 
     void insert(const Key& key, const Value& val);
@@ -105,6 +107,7 @@ public:
 
     //int balance_factor(iterator it) const;
 private:
+//public:
     int height(const node* n) const;
 
     int balance_factor(const node* n) const;
@@ -119,6 +122,9 @@ private:
 
     void ensureLeftBalance(node*& current, bool &shouldRebalance);
     void ensureRightBalance(node*& current, bool &shouldRebalance);
+
+    void ensureLeftBalanceErase(node*& current, bool &shouldRebalance);
+    void ensureRightBalanceErase(node*& current, bool &shouldRebalance);
     void insert_node(node* toInsert, node** parent, bool left);
 
     node* erase(node* current, const Key& key, bool &shouldRebalance);
@@ -140,6 +146,15 @@ private:
     bool equal(const Key& a, const Key& b) const;
 
     node* find_rightmost(node* n) const;
+
+    static node* mask(const node*, short balance);
+    static node* unmask(const node*);
+    bool is_left_heavy(node*);
+    bool is_right_heavy(node*);
+
+    void fix_left_heavy(node*&);
+    void fix_right_heavy(node*&);
+
 
     //template <typename T, typename V>
     /* friend node* load_tree_helper(const std::vector<int>& v, int begin, int end, const std::string& path);
