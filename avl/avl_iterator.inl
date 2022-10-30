@@ -50,9 +50,23 @@ private:
         element = current->container.begin();
     }
 
-    base_iterator(node* n, ListIterator listIter) {
-        current = n;
-        element = listIter;
+    base_iterator(node* n, ListIterator listIter) :
+        current(n),
+        element(listIter)
+    {   
+        
+        /* current = n;
+        element = listIter; */
+    }
+
+    base_iterator(node* n, ListIterator listIter, std::stack<node*>&& parent_stack) :
+        current(n),
+        element(listIter),
+        stack(parent_stack)
+    {   
+
+        /* current = n;
+        element = listIter; */
     }
 
 public:

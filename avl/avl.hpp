@@ -15,7 +15,7 @@ using std::stack;
 template <typename Key, typename Value, typename Compare = std::less<Key>>
 class avl_tree {
 
-private:
+protected:
 //public:
 
     typedef std::pair<const Key, Value> value_type;
@@ -74,10 +74,10 @@ public:
 
     std::pair<const_iterator, const_iterator> equal_range(const Key& key) const;
     std::pair<iterator, iterator> equal_range(const Key& key);
-    /* const_iterator find(const Key& key) const;
-    iterator find(const Key& key); */
+    const_iterator find(const Key& key) const;
+    iterator find(const Key& key);
     
-    const node* const find(const Key& key) const;
+    //const node* const find(const Key& key) const;
 
     void insert(const Key& key, const Value& val);
 
@@ -106,7 +106,7 @@ public:
     ~avl_tree();
 
     //int balance_factor(iterator it) const;
-private:
+protected:
 //public:
     int height(const node* n) const;
 
@@ -114,9 +114,11 @@ private:
 
     std::vector<std::pair<Key, Value>> inorder_traversal(node* node) const;
 
-    void rebalance(node*& startingNode);
+    //void rebalance(node*& startingNode);
 
     node* find(node* current, const Key& key) const;
+
+    node* find(node* current, const Key& key, std::stack<node*>& parent_stack) const;
 
     node* /* void  */insert(node* current, const Key& key, const Value& val, bool &shouldRebalance);
 
@@ -125,11 +127,8 @@ private:
 
     void ensureLeftBalanceErase(node*& current, bool &shouldRebalance);
     void ensureRightBalanceErase(node*& current, bool &shouldRebalance);
-    void insert_node(node* toInsert, node** parent, bool left);
 
     node* erase(node* current, const Key& key, bool &shouldRebalance);
-
-    node* extract_minimal_node(node* parent, node* childNode, node* startingNode, bool &updateBalance);
 
     node* find_minimal_node(node* startingNode) const;
 
@@ -137,7 +136,7 @@ private:
 
     node* left_rotation(node* n);
 
-    node* find_eq_or_greater(node* n, const Key& key) const;
+    node* find_eq_or_greater(node* n, const Key& key, std::stack<node*>& parent_stack) const;
 
     node* erase_node(node* current);
 
